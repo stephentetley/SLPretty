@@ -5,11 +5,10 @@ namespace SLPretty
 
 [<AutoOpen>]
 module SLPretty =
+    
     open System
     open System.Text
     
-    let hello name =
-        printfn "Hello %s" name
     
     type Doc = 
         private 
@@ -31,21 +30,24 @@ module SLPretty =
 
 
 
-    let extendString (s:string) (spaces:int) = 
-        s + String.replicate spaces " "
+    let extendString (s:string) (spaces:int) = s + String.replicate spaces " "
+
 
     let flatten (document:Doc) : Doc = 
-        let rec work (doc:Doc) : Doc = 
+        let rec work (doc:Doc) (cont : Doc -> Doc) : Doc = 
             match doc with
-            | Cat(x,y) -> Cat(work x, work y)
-            | Nest(_,x) -> work x
-            | Line(true) -> Nil
-            | Line(false) -> Text(" ")
-            | Group(x) -> work x
-            | Column(f) -> Column(work << f)
-            | Nesting(f) -> Nesting(work << f)
-            | _ -> doc
-        work document
+            | Cat(x,y) -> 
+                work x (fun x1 -> work y (fun y1 -> cont (Cat(x1, y1))))
+            | Nest(_,x) -> work x cont
+            | Line(true) -> cont Nil
+            | Line(false) -> cont (Text(" "))
+            | Group(x) -> work x cont
+            | Column(f) -> 
+                cont (Column(fun i -> work (f i) id))           // Check!
+            | Nesting(f) -> 
+                cont (Nesting(fun i -> work (f i) id))          // Check!
+            | _ -> cont doc
+        work document (fun x -> x)
 
 
     let private isTooBig (text:string) (col:int) (width:int) : bool = 
@@ -68,7 +70,7 @@ module SLPretty =
                 SLine(iz, best iz.Length rest alternate)
             | (iz, Group(x)) :: rest ->
                 try
-                    best col ((iz, flatten x) :: rest) alternate
+                    best col ((iz, flatten x) :: rest) true
                 with
                 | ErrBacktrack -> best col ((iz, x) :: rest) alternate
             | (iz, Text(t)) :: rest ->
@@ -84,18 +86,18 @@ module SLPretty =
 
     let prettyPrint (doc:Doc) (width:int) : string = 
         let sb = StringBuilder ()
-        let rec print (sdoc:SimpleDoc) : unit = 
+        let rec work (sdoc:SimpleDoc) (cont:unit -> unit) : unit = 
             match sdoc with
-            | SEmpty -> ()
+            | SEmpty -> cont ()
             | SText(t,rest) -> 
                 ignore <| sb.Append(t)
-                print rest
+                work rest cont
             | SLine(x,rest) -> 
                 ignore <| sb.Append('\n')
                 ignore <| sb.Append(x)
-                print rest
+                work rest cont
 
-        print (layout width doc)
+        work (layout width doc) (fun _ -> ())
         sb.ToString()
 
     
@@ -149,6 +151,9 @@ module SLPretty =
 
     let (^@^) (x:Doc) (y:Doc) : Doc = x ^^ line ^^ y
     let (^@@^) (x:Doc) (y:Doc) : Doc = x ^^ linebreak ^^ y
+
+    let (^/^) (x:Doc) (y:Doc) : Doc = x ^^ softline ^^ y
+    let (^//^) (x:Doc) (y:Doc) : Doc = x ^^ softbreak ^^ y
 
     // ************************************************************************
     // Character printers

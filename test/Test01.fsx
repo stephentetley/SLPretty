@@ -29,3 +29,5 @@ let testIndent01 () : unit =
     let doc1 : Doc  = a ^@@^ (indent 2 (b ^@@^ c)) ^@@^ d
     printfn "%s" <| prettyPrint doc1 80
 
+let test03 () : unit = 
+    printfn "%s" <| prettyPrint (text "hello" ^/^ text "world") 7
