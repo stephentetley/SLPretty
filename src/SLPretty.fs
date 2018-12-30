@@ -16,8 +16,6 @@ module SLPretty =
             | Nil
             | Cat of Doc * Doc
             | Nest of int * Doc
-            | Label of string * Doc
-            | Markup of unit * Doc        // TODO
             | Text of string
             | Line of bool
             | Group of Doc
@@ -27,9 +25,7 @@ module SLPretty =
     type SimpleDoc = 
         private 
             | SEmpty 
-            | SText of string * SimpleDoc
-            | SPush of unit * SimpleDoc      // TODO
-            | SPop of SimpleDoc              
+            | SText of string * SimpleDoc          
             | SLine of string * SimpleDoc     
 
 
@@ -43,8 +39,6 @@ module SLPretty =
             match doc with
             | Cat(x,y) -> Cat(work x, work y)
             | Nest(_,x) -> work x
-            | Label(_,x) -> work x
-            | Markup(f,x) -> Markup(f, work x)
             | Line(true) -> Nil
             | Line(false) -> Text(" ")
             | Group(x) -> work x
@@ -57,29 +51,20 @@ module SLPretty =
     let private isTooBig (text:string) (col:int) (width:int) : bool = 
         col + text.Length > width
 
-    type private LayoutAns = 
-        | String of String
-        | False
 
     exception ErrBacktrack
 
     let private layout (width:int) (doc:Doc) : SimpleDoc = 
-        let rec best (col:int) (docs: list<LayoutAns * Doc>) (alternate:bool) =
+        let rec best (col:int) (docs: list<string * Doc>) (alternate:bool) =
             match docs with
             | [] -> SEmpty
-            | (False, _) :: rest -> 
-                SPop(best col rest alternate)
             | (_, Nil) :: rest ->
                 best col rest alternate
             | (iz, Cat(x,y)) :: rest -> 
                 best col ((iz,x) :: (iz,y) :: rest) alternate
-            | (String iz, Nest(n,x)) :: rest -> 
-                best col ((String <| extendString iz n,x) :: rest) alternate
-            | (String iz, Label(l,x)) :: rest -> 
-                best col ((String <| iz + l, x) :: rest) alternate
-            | (iz, Markup(f,x)) :: rest -> 
-                SPush(f, best col ((iz, x) :: (False, Nil) :: rest) alternate) 
-            | (String iz, Line _) :: rest -> 
+            | (iz, Nest(n,x)) :: rest -> 
+                best col ((extendString iz n,x) :: rest) alternate
+            | (iz, Line _) :: rest -> 
                 SLine(iz, best iz.Length rest alternate)
             | (iz, Group(x)) :: rest ->
                 try
@@ -93,9 +78,9 @@ module SLPretty =
                     SText(t, best (col + t.Length) rest alternate)
             | (iz, Column(f)) :: rest ->
                 best col ((iz, f col) :: rest) alternate
-            | (String iz, Nesting(f)) :: rest ->
-                best col ((String iz, f iz.Length) :: rest) alternate
-        best 0 [(String "",doc)] false
+            | (iz, Nesting(f)) :: rest ->
+                best col ((iz, f iz.Length) :: rest) alternate
+        best 0 [("",doc)] false
 
     let prettyPrint (doc:Doc) (width:int) : string = 
         let sb = StringBuilder ()
@@ -104,10 +89,6 @@ module SLPretty =
             | SEmpty -> ()
             | SText(t,rest) -> 
                 ignore <| sb.Append(t)
-                print rest
-            | SPush(_, rest) -> 
-                print rest
-            | SPop(rest) ->
                 print rest
             | SLine(x,rest) -> 
                 ignore <| sb.Append('\n')
@@ -128,10 +109,6 @@ module SLPretty =
     let nest (i:int) (d:Doc) : Doc = Nest (i,d)
     
     let text (s:string) : Doc = Text s 
-
-    let label (l:string) (d:Doc) : Doc = Label(l,d)
-
-    let markup f (d:Doc) : Doc = Markup(f,d)
 
     let column (f:int -> Doc) : Doc = Column(f)
 
