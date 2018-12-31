@@ -33,3 +33,6 @@ let testIndent01 () : unit =
 
 let test03 () : unit = 
     printfn "%s" <| prettyPrint (text "hello" ^/^ text "world") 7
+
+let test03a () : unit = 
+    printfn "%s" <| prettyPrint (text "hello" ^/^ text "world") 12

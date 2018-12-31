@@ -1,6 +1,16 @@
 // Copyright (c) Stephen Tetley 2018
 // License: BSD 3 Clause
 
+// Acknowledgment
+// ==============
+// This is an implementation of Daan Leijen's PPrint. 
+// The original Haskell library was strictified for Mercury by 
+// Ralph Becket and subsequently ported to Racket by David 
+// Herman.
+// The CPS transformation of layout and other functions is new, 
+// any mistakes are mine (SPT).
+
+
 namespace SLPretty
 
 [<AutoOpen>]
@@ -100,6 +110,24 @@ module SLPretty =
 
         work (layout width doc) (fun _ -> ())
         sb.ToString()
+
+    /// prettyPrint with arg order reversed
+    let render (width:int) (doc:Doc)  : string = prettyPrint doc width
+
+    let writeDoc  (width:int) (fileName:string) (doc:Doc) : unit = 
+        use sw = IO.File.CreateText(fileName)
+        let rec work (sdoc:SimpleDoc) (cont:unit -> unit) : unit = 
+            match sdoc with
+            | SEmpty -> cont ()
+            | SText(t,rest) -> 
+                ignore <| sw.Write(t)
+                work rest cont
+            | SLine(x,rest) -> 
+                ignore <| sw.Write('\n')
+                ignore <| sw.Write(x)
+                work rest cont
+
+        work (layout width doc) (fun _ -> ())
 
     
 
@@ -214,6 +242,15 @@ module SLPretty =
 
     let spaces (i:int) : Doc = text <| String.replicate i " "
 
+
+    let enclose (l:Doc) (r:Doc) (body:Doc)   = l ^^ body ^^ r
+
+    let squotes (x:Doc) : Doc = enclose squote squote x
+    let dquotes (x:Doc) : Doc = enclose dquote dquote x
+    let braces (x:Doc) : Doc = enclose lbrace rbrace x
+    let parens (x:Doc) : Doc = enclose lparen rparen x
+    let angles (x:Doc) : Doc = enclose langle rangle x
+    let brackets (x:Doc) : Doc = enclose lbracket rbracket x
     // ************************************************************************
     // List concatenation 
 
@@ -232,6 +269,20 @@ module SLPretty =
         | (x :: xs) -> work x xs
 
     
+    let encloseSep (l:Doc) (r:Doc) (sep:Doc) (ds:Doc list) : Doc = 
+        let rec work (acc:Doc) (docs:Doc list) (cont:Doc -> Doc) = 
+            match docs with
+            | [] -> cont acc
+            | [x] -> cont (acc ^^ x)
+            | x :: xs -> 
+                work (acc ^^ x ^^ sep) xs cont
+        work l ds (fun d -> d ^^ r)
+
+
+    let commaList            = encloseSep lbracket rbracket comma
+    let semiList            = encloseSep lbracket rbracket semi
+    let tupled          = encloseSep lparen   rparen  comma
+    let semiBraces      = encloseSep lbrace   rbrace  semi
     let hcat (docs:Doc list) : Doc = foldDocs beside docs
 
     let hcatSpace (docs:Doc list) : Doc = punctuate space docs
@@ -259,3 +310,4 @@ module SLPretty =
 
     let fillBreak f d = 
         width d (fun w -> if w > f then nest f linebreak else spaces (f - w))
+
