@@ -5,6 +5,7 @@
 
 open SLPretty
 
+
 let test01 () = 
     prettyPrint empty 80
 
@@ -12,6 +13,7 @@ let test01 () =
 let test02 () = 
     prettyPrint (text "hello") 80
 
+/// "ccc" indented 
 let testNesting01 () : unit = 
     let a : Doc = text "aaa"
     let b : Doc = text "bbb"
@@ -20,7 +22,7 @@ let testNesting01 () : unit =
     let doc1 : Doc  = a ^@@^ (nest 2 (b ^@@^ c)) ^@@^ d
     printfn "%s" <| prettyPrint doc1 80
 
-
+/// "bbb" and "ccc" indented 
 let testIndent01 () : unit = 
     let a : Doc = text "aaa"
     let b : Doc = text "bbb"

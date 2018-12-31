@@ -54,35 +54,36 @@ module SLPretty =
         col + text.Length > width
 
 
-    exception ErrBacktrack
+    type Answer =  
+        | ErrBacktrack
+        | Okay of Doc
 
     let private layout (width:int) (doc:Doc) : SimpleDoc = 
-        let rec best (col:int) (docs: list<string * Doc>) (alternate:bool) =
+        let rec best (col:int) (docs: list<string * Doc>) (alternate:bool) sk fk =
             match docs with
-            | [] -> SEmpty
+            | [] -> sk SEmpty
             | (_, Nil) :: rest ->
-                best col rest alternate
+                best col rest alternate sk fk
             | (iz, Cat(x,y)) :: rest -> 
-                best col ((iz,x) :: (iz,y) :: rest) alternate
+                best col ((iz,x) :: (iz,y) :: rest) alternate sk fk
             | (iz, Nest(n,x)) :: rest -> 
-                best col ((extendString iz n,x) :: rest) alternate
-            | (iz, Line _) :: rest -> 
-                SLine(iz, best iz.Length rest alternate)
+                best col ((extendString iz n,x) :: rest) alternate sk fk
+            | (iz, Line _) :: rest ->
+                best iz.Length rest alternate (fun v1 -> sk (SLine(iz,v1))) fk
+                
             | (iz, Group(x)) :: rest ->
-                try
-                    best col ((iz, flatten x) :: rest) true
-                with
-                | ErrBacktrack -> best col ((iz, x) :: rest) alternate
+                best col ((iz, flatten x) :: rest) true (fun v1 -> sk v1) (fun _ -> 
+                best col ((iz, x) :: rest) alternate sk fk)    
             | (iz, Text(t)) :: rest ->
                 if (width >= 0) && alternate && isTooBig t col width then
-                    raise ErrBacktrack
+                    fk ()
                 else
-                    SText(t, best (col + t.Length) rest alternate)
+                    best (col + t.Length) rest alternate (fun v1 -> sk (SText(t,v1))) fk
             | (iz, Column(f)) :: rest ->
-                best col ((iz, f col) :: rest) alternate
+                best col ((iz, f col) :: rest) alternate sk fk
             | (iz, Nesting(f)) :: rest ->
-                best col ((iz, f iz.Length) :: rest) alternate
-        best 0 [("",doc)] false
+                best col ((iz, f iz.Length) :: rest) alternate sk fk
+        best 0 [("",doc)] false id (fun () -> SEmpty)
 
     let prettyPrint (doc:Doc) (width:int) : string = 
         let sb = StringBuilder ()
