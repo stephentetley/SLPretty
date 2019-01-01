@@ -1,15 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="Test01.fsx" />
+    <None Include="Test01.fsx" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\SLPretty.fsproj" />
     <ProjectReference Include="..\src\SLPretty.fsproj" />
   </ItemGroup>
 
