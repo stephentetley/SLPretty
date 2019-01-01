@@ -7,8 +7,8 @@
 // The original Haskell library was strictified for Mercury by 
 // Ralph Becket and subsequently ported to Racket by David 
 // Herman.
-// The CPS transformation of layout and other functions is new, 
-// any mistakes are mine (SPT).
+// The CPS transformation of layout and other functions is new. 
+// Any mistakes are mine (SPT).
 
 
 namespace SLPretty
@@ -40,10 +40,10 @@ module SLPretty =
 
 
 
-    let extendString (s:string) (spaces:int) = s + String.replicate spaces " "
+    let private extendString (s:string) (spaces:int) = s + String.replicate spaces " "
 
 
-    let flatten (document:Doc) : Doc = 
+    let private flatten (document:Doc) : Doc = 
         let rec work (doc:Doc) (cont : Doc -> Doc) : Doc = 
             match doc with
             | Cat(x,y) -> 
@@ -64,9 +64,6 @@ module SLPretty =
         col + text.Length > width
 
 
-    type Answer =  
-        | ErrBacktrack
-        | Okay of Doc
 
     let private layout (width:int) (doc:Doc) : SimpleDoc = 
         let rec best (col:int) (docs: list<string * Doc>) (alternate:bool) sk fk =
@@ -80,7 +77,6 @@ module SLPretty =
                 best col ((extendString iz n,x) :: rest) alternate sk fk
             | (iz, Line _) :: rest ->
                 best iz.Length rest alternate (fun v1 -> sk (SLine(iz,v1))) fk
-                
             | (iz, Group(x)) :: rest ->
                 best col ((iz, flatten x) :: rest) true (fun v1 -> sk v1) (fun _ -> 
                 best col ((iz, x) :: rest) alternate sk fk)    
@@ -135,10 +131,14 @@ module SLPretty =
     // ************************************************************************
     // Primitive printers   
 
+
+    /// The empty document
     let empty : Doc = Nil
     
     let nest (i:int) (d:Doc) : Doc = Nest (i,d)
     
+
+    /// Text should not contain newline ('\n')
     let text (s:string) : Doc = Text s 
 
     let column (f:int -> Doc) : Doc = Column(f)
@@ -311,3 +311,7 @@ module SLPretty =
     let fillBreak f d = 
         width d (fun w -> if w > f then nest f linebreak else spaces (f - w))
 
+    /// Use this rather than text if the input string contains newlines.
+    let fromString (s:string) : Doc = 
+        let lines = List.map text << Array.toList <| s.Split('\n')
+        punctuate line lines
