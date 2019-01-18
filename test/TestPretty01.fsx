@@ -1,9 +1,9 @@
-// Copyright (c) Stephen Tetley 2018
+// Copyright (c) Stephen Tetley 2018,2019
 // License: BSD 3 Clause
 
-#load "..\src\SLPretty.fs"
+#load "..\src\SLFormat\Pretty\Pretty.fs"
 
-open SLPretty
+open SLFormat.Pretty
 
 
 let test01 () = 

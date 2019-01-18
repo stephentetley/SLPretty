@@ -1,4 +1,4 @@
-// Copyright (c) Stephen Tetley 2018
+// Copyright (c) Stephen Tetley 2018,2019
 // License: BSD 3 Clause
 
 // Acknowledgment
@@ -11,7 +11,7 @@
 // Any mistakes are mine (SPT).
 
 
-namespace SLPretty
+namespace SLFormat.Pretty
 
 [<AutoOpen>]
 module SLPretty =

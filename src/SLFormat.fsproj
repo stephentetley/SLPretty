@@ -5,7 +5,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="SLPretty.fs" />
+    <Compile Include="SLFormat\Pretty\Pretty.fs" />
+    <Compile Include="SLFormat\CmdArgs\CmdArgs.fs" />
   </ItemGroup>
 
 </Project>

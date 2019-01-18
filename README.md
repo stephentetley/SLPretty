@@ -1,5 +1,10 @@
-# SLPretty
-Pretty printer library based on Daan Leijen's PPrint and Racket's pprint.
+# sl-format
+
+A formatting library for F#.
+
+Includes a pretty printer and a very simple combinator library for building command line arguments.
+
+The pretty printer library based on Daan Leijen's PPrint and Racket's pprint.
 
 ## Acknowledgment
 

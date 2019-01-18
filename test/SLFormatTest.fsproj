@@ -5,11 +5,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="Test01.fsx" />
+    <None Include="TestPretty01.fsx" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\src\SLPretty.fsproj" />
+    <ProjectReference Include="..\src\SLFormat.fsproj" />
   </ItemGroup>
 
 </Project>
