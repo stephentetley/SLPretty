@@ -11,10 +11,10 @@
 // Any mistakes are mine (SPT).
 
 
-namespace SLFormat.Pretty
+namespace SLFormat
 
-[<AutoOpen>]
-module SLPretty =
+
+module Pretty =
     
     open System
     open System.Text
@@ -91,6 +91,7 @@ module SLPretty =
                 best col ((iz, f iz.Length) :: rest) alternate sk fk
         best 0 [("",doc)] false id (fun () -> SEmpty)
 
+    /// Lines are terminated with the default line terminator.
     let prettyPrint (doc:Doc) (width:int) : string = 
         let sb = StringBuilder ()
         let rec work (sdoc:SimpleDoc) (cont:unit -> unit) : unit = 
@@ -100,7 +101,7 @@ module SLPretty =
                 ignore <| sb.Append(t)
                 work rest cont
             | SLine(x,rest) -> 
-                ignore <| sb.Append('\n')
+                ignore <| sb.AppendLine()
                 ignore <| sb.Append(x)
                 work rest cont
 
@@ -110,6 +111,8 @@ module SLPretty =
     /// prettyPrint with arg order reversed
     let render (width:int) (doc:Doc)  : string = prettyPrint doc width
 
+
+    /// Lines are terminated with the default line terminator.
     let writeDoc  (width:int) (fileName:string) (doc:Doc) : unit = 
         use sw = IO.File.CreateText(fileName)
         let rec work (sdoc:SimpleDoc) (cont:unit -> unit) : unit = 
@@ -119,7 +122,7 @@ module SLPretty =
                 ignore <| sw.Write(t)
                 work rest cont
             | SLine(x,rest) -> 
-                ignore <| sw.Write('\n')
+                ignore <| sw.WriteLine()
                 ignore <| sw.Write(x)
                 work rest cont
 
@@ -153,7 +156,7 @@ module SLPretty =
 
     let character (ch:char) : Doc = 
         match ch with
-        | '\n' -> line 
+        | '\n' | '\r' -> line 
         | _ -> text <| ch.ToString()
 
 
@@ -181,7 +184,11 @@ module SLPretty =
     let (^@^) (x:Doc) (y:Doc) : Doc = x ^^ line ^^ y
     let (^@@^) (x:Doc) (y:Doc) : Doc = x ^^ linebreak ^^ y
 
+
+    /// Concatenate two documents with a soft line.
     let (^/^) (x:Doc) (y:Doc) : Doc = x ^^ softline ^^ y
+    
+    /// Concatenate two documents with a soft break.
     let (^//^) (x:Doc) (y:Doc) : Doc = x ^^ softbreak ^^ y
 
     // ************************************************************************
@@ -313,5 +320,5 @@ module SLPretty =
 
     /// Use this rather than text if the input string contains newlines.
     let fromString (s:string) : Doc = 
-        let lines = List.map text << Array.toList <| s.Split('\n')
+        let lines = List.map text << Array.toList <| s.Split([| "\r\n"; "\r"; "\n" |], StringSplitOptions.None)
         punctuate line lines

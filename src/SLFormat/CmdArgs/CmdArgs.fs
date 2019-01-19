@@ -1,10 +1,9 @@
 ﻿// Copyright (c) Stephen Tetley 2019
 // License: BSD 3 Clause
 
-namespace SLFormat.CmdArgs
+namespace SLFormat
 
 
-[<AutoOpen>]
 module CmdArgs = 
 
     open System.Text
