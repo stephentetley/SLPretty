@@ -9,7 +9,6 @@ module CmdArgs =
 
     open System.Text
 
-    let doubleQuote (s:string) : string = "\"" + s + "\""
 
     type private Punctuation = 
         | Space 
@@ -29,11 +28,8 @@ module CmdArgs =
                 | ReqArg of string * Punctuation * string
                 | OptArg of string * Punctuation * option<string>
                 | Cat of CmdArgs * CmdArgs
-
-        static member (+) (x1:CmdArgs,x2:CmdArgs) = Cat(x1,x2)
-
-
-        member x.Render() : string = 
+        
+        override x.ToString() : string = 
             let sb = StringBuilder ()
             let rec work (cmds:CmdArgs) (cont : Trace -> unit) : unit = 
                 match cmds with
@@ -63,13 +59,21 @@ module CmdArgs =
             work x (fun _ -> ()) |> ignore
             sb.ToString()
 
+        static member (+) (x1:CmdArgs,x2:CmdArgs) = Cat(x1,x2)
+
+    let render (args:CmdArgs) : string = args.ToString()
+
     let empty : CmdArgs = Empty
 
 
-    let reqArgEquals (name:string) (value:string) : CmdArgs = ReqArg(name,Equals,value)
+    let noArg (name : string) : CmdArgs = NoArg(name)
 
+    let reqArgEquals (name:string) (value:string) : CmdArgs = ReqArg(name,Equals,value)
+    
+    /// Command with a required argument, printed with a space separator.
     let reqArgSpace (name:string) (value:string) : CmdArgs = ReqArg(name,Space,value)
 
+    /// Command with a required argument, printed with an equals sign separator.
     let optArgEquals (name:string) (value:option<string>) : CmdArgs = OptArg(name,Equals,value)
 
     let optArgSpace (name:string) (value:option<string>) : CmdArgs = OptArg(name,Space,value)
@@ -80,6 +84,19 @@ module CmdArgs =
         | (x::xs) -> List.fold (fun y1 y2 -> Cat(y1,y2)) x xs
 
 
-
-
+    // ************************************************************************
+    // String helpers
     
+    let doubleQuote (s:string) : string = "\"" + s + "\""
+
+    // Double quote a string if it contains spaces - use this e.g. for file names.
+    let maybeDoubleQuote (s:string) : string = 
+        if s.Contains(" ") then doubleQuote s else s 
+    
+    let keyValueEquals (key:string) (value:string) : string = 
+        sprintf "%s=%s" key value
+
+    let keyValueColon (key:string) (value:string) : string = 
+        sprintf "%s:%s" key value
+
+    let (===) (key:string) (value:string) = keyValueEquals key value

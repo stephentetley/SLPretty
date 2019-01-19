@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <None Include="TestPretty01.fsx" />
+    <None Include="TestCmdArgs.fsx" />
   </ItemGroup>
 
   <ItemGroup>
