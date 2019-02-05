@@ -30,32 +30,32 @@ module CmdArgs =
         
         override x.ToString() : string = 
             let sb = StringBuilder ()
+            let inline appendString (s:string) = sb.Append(s) |> ignore
             let rec work (cmds:CmdArgs) (cont : Trace -> unit) : unit = 
                 match cmds with
                 | Empty -> cont TEmpty
                 | NoArg(name) -> 
-                    sb.Append(name) |> ignore 
+                    appendString name
                     cont TArg
                 | ReqArg (name,punct,value) -> 
-                    sb.Append(name) |> ignore
-                    sb.Append(punct.ToString()) |> ignore
-                    sb.Append(value) |> ignore
+                    appendString name
+                    appendString (punct.ToString())
+                    appendString value
                     cont TArg
                 | OptArg (name,punct,ovalue) -> 
-                    sb.Append(name) |> ignore
+                    appendString name
                     match ovalue with
                     | Some value -> 
-                        sb.Append(punct.ToString()) |> ignore
-                        sb.Append(value) |> ignore
+                        appendString (punct.ToString())
+                        appendString value
                     | None -> ()
                     cont TArg
                 | Cat(x,y) -> 
                     work x (fun v1 ->
-                    if v1 = TArg then sb.Append(' ') |> ignore else ()
-                    work y (fun v2 -> 
-                    cont v2))
+                    if v1 = TArg then appendString " "  else ()
+                    work y (fun v2 ->  cont v2))
 
-            work x (fun _ -> ()) |> ignore
+            work x (fun _ -> ())
             sb.ToString()
 
         static member (+) (x1:CmdArgs,x2:CmdArgs) = Cat(x1,x2)

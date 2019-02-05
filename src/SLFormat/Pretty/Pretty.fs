@@ -7,7 +7,8 @@
 // The original Haskell library was strictified for Mercury by 
 // Ralph Becket and subsequently ported to Racket by David 
 // Herman.
-// The CPS transformation of layout and other functions is new. 
+// The CPS transformation of layout and other functions in this
+// implementation is new. 
 // Any mistakes are mine (SPT).
 
 
@@ -94,15 +95,16 @@ module Pretty =
     /// Lines are terminated with the default line terminator.
     let prettyPrint (doc:Doc) (width:int) : string = 
         let sb = StringBuilder ()
+        let inline stringAppend (s:string) :unit = sb.Append(s) |> ignore
         let rec work (sdoc:SimpleDoc) (cont:unit -> unit) : unit = 
             match sdoc with
             | SEmpty -> cont ()
             | SText(t,rest) -> 
-                ignore <| sb.Append(t)
+                stringAppend t
                 work rest cont
             | SLine(x,rest) -> 
-                ignore <| sb.AppendLine()
-                ignore <| sb.Append(x)
+                sb.AppendLine() |> ignore
+                stringAppend x
                 work rest cont
 
         work (layout width doc) (fun _ -> ())
@@ -286,10 +288,11 @@ module Pretty =
         work l ds (fun d -> d ^^ r)
 
 
-    let commaList            = encloseSep lbracket rbracket comma
-    let semiList            = encloseSep lbracket rbracket semi
-    let tupled          = encloseSep lparen   rparen  comma
-    let semiBraces      = encloseSep lbrace   rbrace  semi
+    let commaList (docs:Doc list) : Doc = encloseSep lbracket rbracket comma docs
+
+    let semiList (docs:Doc list) : Doc = encloseSep lbracket rbracket semi docs
+    let tupled (docs:Doc list) : Doc = encloseSep lparen rparen comma docs
+    let semiBraces  (docs:Doc list) : Doc = encloseSep lbrace rbrace semi docs
     let hcat (docs:Doc list) : Doc = foldDocs beside docs
 
     let hcatSpace (docs:Doc list) : Doc = punctuate space docs
@@ -301,21 +304,21 @@ module Pretty =
     let vcatSoftBreak (docs:Doc list) : Doc = punctuate softbreak docs
 
 
-    let width d f = 
-        column (fun k1 -> d ^^ column (fun k2 -> f (k2 - k1)) )
+    let width (doc:Doc) (fn:int -> Doc) : Doc = 
+        column (fun k1 -> doc ^^ column (fun k2 -> fn (k2 - k1)) )
 
-    let align (d:Doc) = 
-        column (fun k -> nesting (fun i -> nest (k - i) d))
+    let align (doc:Doc) :Doc = 
+        column (fun k -> nesting (fun i -> nest (k - i) doc))
 
     let hang (i:int) (d:Doc) : Doc = align (nest i d)
 
     let indent (i:int) (d:Doc) : Doc = 
         hang i (spaces i ^^ d)
 
-    let fill f d = 
+    let fill (f:int) (d:Doc) : Doc = 
         width d (fun w -> if w >= f then empty else spaces (f - w))
 
-    let fillBreak f d = 
+    let fillBreak (f:int) (d:Doc) : Doc = 
         width d (fun w -> if w > f then nest f linebreak else spaces (f - w))
 
     /// Use this rather than text if the input string contains newlines.
