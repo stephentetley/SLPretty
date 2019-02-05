@@ -176,14 +176,20 @@ module Pretty =
     // Don't try to define (<>) - it is a reserved operator name in F#
 
 
-    // aka beside
+     /// Concatenate two documents horizontally (no separating space).
     let (^^) (x:Doc) (y:Doc) = beside x y
 
+    /// Concatenate two documents horizontally with a separating space.
     let besideSpace (x:Doc) (y:Doc) : Doc = x ^^ character ' ' ^^ y
 
+
+    /// Concatenate two documents horizontally with a separating space.
     let (^+^) (x:Doc) (y:Doc) : Doc = besideSpace x y
 
+    /// Concatenate two documents separinting with `line`.
     let (^@^) (x:Doc) (y:Doc) : Doc = x ^^ line ^^ y
+
+    /// Concatenate two documents separinting with `linebreak`.
     let (^@@^) (x:Doc) (y:Doc) : Doc = x ^^ linebreak ^^ y
 
 
@@ -248,44 +254,50 @@ module Pretty =
     /// The document @equals@ contains an equal sign, \"=\".
     let equals : Doc = character '='
 
+    /// Generate a document of n spaces.
+    let spaces (n:int) : Doc = text <| String.replicate n " "
 
-    let spaces (i:int) : Doc = text <| String.replicate i " "
-
-
+    /// Enclose the document body betwen l (left) and r (right).
     let enclose (l:Doc) (r:Doc) (body:Doc)   = l ^^ body ^^ r
 
+    /// Enclose in signle quotes '...'
     let squotes (x:Doc) : Doc = enclose squote squote x
+    
+    /// Enclose in double quotes "..."
     let dquotes (x:Doc) : Doc = enclose dquote dquote x
+    
+    /// Enclose in angle braces {...}
     let braces (x:Doc) : Doc = enclose lbrace rbrace x
+    
+    /// Enclose in square brackets (...)
     let parens (x:Doc) : Doc = enclose lparen rparen x
+    
+    /// Enclose in angle brackets <...>
     let angles (x:Doc) : Doc = enclose langle rangle x
+    
+    /// Enclose in square brackets [...]
     let brackets (x:Doc) : Doc = enclose lbracket rbracket x
+
     // ************************************************************************
     // List concatenation 
 
-    let foldDocs (op:Doc -> Doc -> Doc) (docs:Doc list) : Doc = 
-        match docs with
+    let foldDocs (op:Doc -> Doc -> Doc) (documents:Doc list) : Doc = 
+        match documents with
         | [] -> empty
         | (x::xs) -> List.fold op x xs
 
-    let punctuate (sep:Doc) (docs:Doc list) : Doc =
-        let rec work acc ds =
-            match ds with
-            | [] -> acc
-            | (x :: xs) -> work (Cat(acc, Cat(sep,x))) xs
-        match docs with
-        | [] -> empty
-        | (x :: xs) -> work x xs
+    let punctuate (sep:Doc) (documents:Doc list) : Doc =
+        foldDocs (fun x y -> Cat(x, (Cat(sep,y)))) documents
 
-    
-    let encloseSep (l:Doc) (r:Doc) (sep:Doc) (ds:Doc list) : Doc = 
+    /// Concatenante all documents with sep and bookend them with l and r.
+    let encloseSep (l:Doc) (r:Doc) (sep:Doc) (documents:Doc list) : Doc = 
         let rec work (acc:Doc) (docs:Doc list) (cont:Doc -> Doc) = 
             match docs with
             | [] -> cont acc
-            | [x] -> cont (acc ^^ x)
+            | [x] -> cont (acc ^//^ x)
             | x :: xs -> 
-                work (acc ^^ x ^^ sep) xs cont
-        work l ds (fun d -> d ^^ r)
+                work (acc ^//^ x ^^ sep) xs cont
+        work l documents (fun d -> d ^^ r)
 
 
     let commaList (docs:Doc list) : Doc = encloseSep lbracket rbracket comma docs
