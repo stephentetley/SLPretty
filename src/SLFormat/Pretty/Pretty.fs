@@ -20,7 +20,7 @@ module Pretty =
     open System
     open System.Text
     
-    
+    /// The abstract type of Documents.
     type Doc = 
         private 
             | Nil
@@ -32,16 +32,16 @@ module Pretty =
             | Column of (int -> Doc)
             | Nesting of (int -> Doc)   
 
-    type SimpleDoc = 
-        private 
-            | SEmpty 
-            | SText of string * SimpleDoc          
-            | SLine of string * SimpleDoc     
+    /// The type representing a rendered Doc.
+    type private SimpleDoc = 
+        | SEmpty 
+        | SText of string * SimpleDoc          
+        | SLine of string * SimpleDoc     
 
 
 
 
-    let private extendString (s:string) (spaces:int) = s + String.replicate spaces " "
+    let private padRight (s:string) (spaces:int) = s.PadRight(totalWidth=spaces, paddingChar=' ')
 
 
     let private flatten (document:Doc) : Doc = 
@@ -75,7 +75,7 @@ module Pretty =
             | (iz, Cat(x,y)) :: rest -> 
                 best col ((iz,x) :: (iz,y) :: rest) alternate sk fk
             | (iz, Nest(n,x)) :: rest -> 
-                best col ((extendString iz n,x) :: rest) alternate sk fk
+                best col ((padRight iz n,x) :: rest) alternate sk fk
             | (iz, Line _) :: rest ->
                 best iz.Length rest alternate (fun v1 -> sk (SLine(iz,v1))) fk
             | (iz, Group(x)) :: rest ->
@@ -92,7 +92,8 @@ module Pretty =
                 best col ((iz, f iz.Length) :: rest) alternate sk fk
         best 0 [("",doc)] false id (fun () -> SEmpty)
 
-    /// Lines are terminated with the default line terminator.
+    /// Pretty print the document to a string.
+    /// Lines are terminated with the operating systems default line terminator.
     let prettyPrint (doc:Doc) (width:int) : string = 
         let sb = StringBuilder ()
         let inline stringAppend (s:string) :unit = sb.Append(s) |> ignore
@@ -110,12 +111,13 @@ module Pretty =
         work (layout width doc) (fun _ -> ())
         sb.ToString()
 
-    /// prettyPrint with arg order reversed
-    let render (width:int) (doc:Doc)  : string = prettyPrint doc width
+    /// Render the document to a string.
+    /// This is `prettyPrint` with arg order reversed
+    let render (width:int) (doc:Doc) : string = prettyPrint doc width
 
-
+    /// Output a document to file.
     /// Lines are terminated with the default line terminator.
-    let writeDoc  (width:int) (fileName:string) (doc:Doc) : unit = 
+    let writeDoc (width:int) (fileName:string) (doc:Doc) : unit = 
         use sw = IO.File.CreateText(fileName)
         let rec work (sdoc:SimpleDoc) (cont:unit -> unit) : unit = 
             match sdoc with
@@ -140,37 +142,52 @@ module Pretty =
     /// The empty document
     let empty : Doc = Nil
     
-    let nest (i:int) (d:Doc) : Doc = Nest (i,d)
+    /// 'nest' renders the document 'doc' with the current indentation level 
+    /// increased by i
+    let nest (i:int) (doc:Doc) : Doc = Nest (i,doc)
     
+    /// Generate the document containing the literal string 's'.
+    /// The input text should not contain newline characters.
+    let text (s:string) : Doc = Text s
 
-    /// Text should not contain newline ('\n')
-    let text (s:string) : Doc = Text s 
 
     let column (f:int -> Doc) : Doc = Column(f)
 
     let nesting (f:int -> Doc) : Doc = Nesting(f)
 
-    let group (d:Doc) : Doc = Group(d)
+    /// Use the group combinator to specify alternate layouts.
+    /// `(group doc)` undoes all linebreaks in doc.
+    let group (doc:Doc) : Doc = Group(doc)
 
+    /// 'line' advances to the next line and indents to the current nesting 
+    /// level.
+    /// If the line break is undone by group line is rendered as a space.
     let line : Doc = Line false
-    
+
+    /// 'linebreak' advances to the next line and indents to the current nesting 
+    /// level.
+    /// If the line break is undone by group line is rendered as empty.    
     let linebreak : Doc = Line true
 
+    /// This is 'char' in PPrint (Haskell).
     let character (ch:char) : Doc = 
         match ch with
         | '\n' | '\r' -> line 
         | _ -> text <| ch.ToString()
 
-
+    /// `softline` behaves like `space` if the document it is part of fits the page.
+    /// If it is too large it renders as `line`.
     let softline : Doc = group line
 
+    /// `softbreak` behaves like `empty` if the document it is part of fits the page.
+    /// If it is too large it renders as `line`.
     let softbreak : Doc = group linebreak
 
     
     
 
     
-
+    /// Concatenate documents x and y.
     let beside (x:Doc) (y:Doc) : Doc = Cat(x,y)
 
     // Don't try to define (<>) - it is a reserved operator name in F#
@@ -294,8 +311,8 @@ module Pretty =
         | [] -> empty
         | (x::xs) -> List.fold op x xs
 
-    let punctuate (sep:Doc) (documents:Doc list) : Doc =
-        foldDocs (fun x y -> Cat(x, (Cat(sep,y)))) documents
+    let punctuate (separator:Doc) (documents:Doc list) : Doc =
+        foldDocs (fun l r -> l ^^ separator ^^ r) documents
 
     let hsep (documents: Doc list) = foldDocs (^+^) documents
     let vsep (documents: Doc list) = foldDocs (^@^) documents
@@ -307,21 +324,29 @@ module Pretty =
     let fillCat (documents: Doc list)  = foldDocs (^//^) documents
     let cat (documents: Doc list) = group (vcat documents)
 
-    /// Concatenante all documents with sep and bookend them with l and r.
-    let encloseSep (l:Doc) (r:Doc) (sep:Doc) (documents:Doc list) : Doc = 
+    /// Concatenante all documents with `separator` and bookend them with `left` and `right`.
+    let encloseSep (left:Doc) (right:Doc) (separator:Doc) (documents:Doc list) : Doc = 
         let rec work (acc:Doc) (docs:Doc list) (cont:Doc -> Doc) = 
             match docs with
             | [] -> cont acc
             | [x] -> cont (acc ^//^ x)
             | x :: xs -> 
-                work (acc ^//^ x ^^ sep) xs cont
-        work l documents (fun d -> d ^^ r)
+                work (acc ^//^ x ^^ separator) xs cont
+        work left documents (fun d -> d ^^ right)
 
-
+    /// Enclose in square brackets and separate with comma [a,b,c,...]
     let commaList (docs:Doc list) : Doc = encloseSep lbracket rbracket comma docs
 
+    /// Enclose in square brackets and separate with semicolon [a;b;c,...]
     let semiList (docs:Doc list) : Doc = encloseSep lbracket rbracket semi docs
+
+    /// Enclose in parens and separate with comma (a,b,c,...)
     let tupled (docs:Doc list) : Doc = encloseSep lparen rparen comma docs
+
+    /// Enclose in curly braces and separate with comma {a,b,c,...}
+    let commaBraces  (docs:Doc list) : Doc = encloseSep lbrace rbrace comma docs
+
+    /// Enclose in curly braces and separate with semicolon {a;b;c;...}
     let semiBraces  (docs:Doc list) : Doc = encloseSep lbrace rbrace semi docs
 
     let hcatSpace (docs:Doc list) : Doc = punctuate space docs
@@ -335,21 +360,31 @@ module Pretty =
     let width (doc:Doc) (fn:int -> Doc) : Doc = 
         column (fun k1 -> doc ^^ column (fun k2 -> fn (k2 - k1)) )
 
+    /// `(align d)` renders the document `d` with the nesting level set to 
+    /// the current column.
     let align (doc:Doc) :Doc = 
         column (fun k -> nesting (fun i -> nest (k - i) doc))
 
-    let hang (i:int) (d:Doc) : Doc = align (nest i d)
+    /// Implement hanging indentation.
+    let hang (i:int) (doc:Doc) : Doc = align (nest i doc)
 
-    let indent (i:int) (d:Doc) : Doc = 
-        hang i (spaces i ^^ d)
+    /// Indent the document `doc` with `i` spaces.
+    let indent (i:int) (doc:Doc) : Doc = 
+        hang i (spaces i ^^ doc)
 
-    let fill (f:int) (d:Doc) : Doc = 
-        width d (fun w -> if w >= f then empty else spaces (f - w))
+    /// `fill` renders the supplied  document and right pads with spaces 
+    /// until the width is equal to `i`.
+    let fill (i:int) (doc:Doc) : Doc = 
+        width doc (fun w -> if w >= i then empty else spaces (i - w))
 
-    let fillBreak (f:int) (d:Doc) : Doc = 
-        width d (fun w -> if w > f then nest f linebreak else spaces (f - w))
+    let fillBreak (f:int) (doc:Doc) : Doc = 
+        width doc (fun w -> if w > f then nest f linebreak else spaces (f - w))
 
     /// Use this rather than text if the input string contains newlines.
+    /// Newline characters are replaced by 'line'
+    /// This is 'string' in PPrint (Haskell).
     let fromString (s:string) : Doc = 
         let lines = List.map text << Array.toList <| s.Split([| "\r\n"; "\r"; "\n" |], StringSplitOptions.None)
         punctuate line lines
+
+
