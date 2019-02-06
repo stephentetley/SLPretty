@@ -162,9 +162,9 @@ module Pretty =
         | _ -> text <| ch.ToString()
 
 
-    let softline : Doc = Group line
+    let softline : Doc = group line
 
-    let softbreak : Doc = Group linebreak
+    let softbreak : Doc = group linebreak
 
     
     
@@ -176,7 +176,8 @@ module Pretty =
     // Don't try to define (<>) - it is a reserved operator name in F#
 
 
-     /// Concatenate two documents horizontally (no separating space).
+    /// Concatenate two documents horizontally (no separating space).
+    /// This is (<>) in PPrint (Haskell).
     let (^^) (x:Doc) (y:Doc) = beside x y
 
     /// Concatenate two documents horizontally with a separating space.
@@ -184,21 +185,28 @@ module Pretty =
 
 
     /// Concatenate two documents horizontally with a separating space.
+    /// This is (<+>) in PPrint (Haskell).
     let (^+^) (x:Doc) (y:Doc) : Doc = besideSpace x y
 
-    /// Concatenate two documents separinting with `line`.
-    let (^@^) (x:Doc) (y:Doc) : Doc = x ^^ line ^^ y
-
-    /// Concatenate two documents separinting with `linebreak`.
-    let (^@@^) (x:Doc) (y:Doc) : Doc = x ^^ linebreak ^^ y
-
-
     /// Concatenate two documents with a soft line.
+    /// This is (</>) in PPrint (Haskell).
     let (^/^) (x:Doc) (y:Doc) : Doc = x ^^ softline ^^ y
     
     /// Concatenate two documents with a soft break.
+    /// This is (<//>) in PPrint (Haskell).
     let (^//^) (x:Doc) (y:Doc) : Doc = x ^^ softbreak ^^ y
 
+    /// Concatenate two documents separinting with `line`.
+    /// This is (<$>) in PPrint (Haskell).
+    let (^@^) (x:Doc) (y:Doc) : Doc = x ^^ line ^^ y
+
+    /// Concatenate two documents separinting with `linebreak`.
+    /// This is (<$$>) in PPrint (Haskell).
+    let (^@@^) (x:Doc) (y:Doc) : Doc = x ^^ linebreak ^^ y
+
+
+    
+    
     // ************************************************************************
     // Character printers
 
@@ -289,6 +297,16 @@ module Pretty =
     let punctuate (sep:Doc) (documents:Doc list) : Doc =
         foldDocs (fun x y -> Cat(x, (Cat(sep,y)))) documents
 
+    let hsep (documents: Doc list) = foldDocs (^+^) documents
+    let vsep (documents: Doc list) = foldDocs (^@^) documents
+    let fillSep (documents: Doc list)  = foldDocs (^/^) documents
+    let sep (documents: Doc list) = group (vsep documents)
+
+    let hcat (documents: Doc list) = foldDocs (^^) documents
+    let vcat (documents: Doc list) = foldDocs (^@@^) documents
+    let fillCat (documents: Doc list)  = foldDocs (^//^) documents
+    let cat (documents: Doc list) = group (vcat documents)
+
     /// Concatenante all documents with sep and bookend them with l and r.
     let encloseSep (l:Doc) (r:Doc) (sep:Doc) (documents:Doc list) : Doc = 
         let rec work (acc:Doc) (docs:Doc list) (cont:Doc -> Doc) = 
@@ -305,11 +323,9 @@ module Pretty =
     let semiList (docs:Doc list) : Doc = encloseSep lbracket rbracket semi docs
     let tupled (docs:Doc list) : Doc = encloseSep lparen rparen comma docs
     let semiBraces  (docs:Doc list) : Doc = encloseSep lbrace rbrace semi docs
-    let hcat (docs:Doc list) : Doc = foldDocs beside docs
 
     let hcatSpace (docs:Doc list) : Doc = punctuate space docs
 
-    let vcat (docs:Doc list) : Doc = punctuate line docs
 
     let vcatSoft (docs:Doc list) : Doc = punctuate softline docs
 
