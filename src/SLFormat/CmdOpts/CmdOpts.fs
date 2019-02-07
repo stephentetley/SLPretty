@@ -38,7 +38,6 @@ module CommandOptions =
                 | Empty -> cont ()
                 | Text(s) -> 
                     appendString s; cont()
-
                 | Cat(x,y) -> 
                     work x (fun _ ->
                     work y cont)
@@ -53,6 +52,7 @@ module CommandOptions =
 
 
     let command (name : string) : CmdOpt = Text(name)
+    let noCommand : CmdOpt = Empty
 
     let literal (s:string) : CmdOpt = Text(s)
     let character (c:char) : CmdOpt = Text(c.ToString())
@@ -68,9 +68,7 @@ module CommandOptions =
     let (&=) (cmd:CmdOpt) (s:string) : CmdOpt = cmd ^^ character '=' ^^ literal s
     let (&+) (cmd:CmdOpt) (s:string) : CmdOpt = cmd ^^ character '+' ^^ literal s
     let (&-) (cmd:CmdOpt) (s:string) : CmdOpt = cmd ^^ character '-' ^^ literal s
-    let (&%) (key:CmdOpt) (value:string) : CmdOpt = 
-        let qvalue = if value.Contains(" ") then doubleQuote value else value
-        key ^^ character ':' ^^ literal qvalue
+    let (&%) (key:CmdOpt) (value:string) : CmdOpt = key ^^ character ':' ^^ literal (argValue value)
 
 
 
@@ -91,6 +89,6 @@ module CommandOptions =
             | Enable s -> "+" + s
             | Disable s -> "-" + s
 
-    let (&***) (cmd:CmdOpt) (extensions:Extension list) : CmdOpt =  
+    let (&**) (cmd:CmdOpt) (extensions:Extension list) : CmdOpt =  
         extensions |> List.map (fun x -> x.ToString()) |> concatArgs cmd 
 
