@@ -46,13 +46,13 @@ module CommandOptions =
             sb.ToString()
 
 
-    let options (opts:CmdOpt list) : string = 
+    let arguments (opts:CmdOpt list) : string = 
         opts |> List.map (fun x -> x.ToString()) |>  String.concat " "
 
 
 
-    let command (name : string) : CmdOpt = Text(name)
-    let noCommand : CmdOpt = Empty
+    let argument (name : string) : CmdOpt = Text(name)
+    let noArgument : CmdOpt = Empty
 
     let literal (s:string) : CmdOpt = Text(s)
     let character (c:char) : CmdOpt = Text(c.ToString())
