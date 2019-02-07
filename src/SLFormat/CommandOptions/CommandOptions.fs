@@ -78,9 +78,12 @@ module CommandOptions =
     let (&+) (cmd:CmdOpt) (value:string) : CmdOpt = cmd ^^ character '+' ^^ literal value
     let (&-) (cmd:CmdOpt) (value:string) : CmdOpt = cmd ^^ character '-' ^^ literal value
     let (&%) (key:CmdOpt) (value:string) : CmdOpt = key ^^ character ':' ^^ literal (argValue value)
+
+    /// No space or other punctuation between command and value
+    let (&^) (cmd:CmdOpt) (value:string) : CmdOpt = cmd ^^ literal value
     
     /// print space between command and value
-    let (&^) (cmd:CmdOpt) (value:string) : CmdOpt = cmd ^+^ literal value
+    let (&^^) (cmd:CmdOpt) (value:string) : CmdOpt = cmd ^+^ literal value
 
 
 

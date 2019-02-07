@@ -13,6 +13,7 @@
   <ItemGroup>
     <Compile Include="SLFormat\Pretty\Pretty.fs" />
     <Compile Include="SLFormat\CommandOptions\CommandOptions.fs" />
+    <Compile Include="SLFormat\CommandOptions\SimpleInvoke.fs" />
 </ItemGroup>
 
 </Project>
