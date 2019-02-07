@@ -11,8 +11,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="SLFormat\CmdOpts\CmdOpts.fs" />
     <Compile Include="SLFormat\Pretty\Pretty.fs" />
-    <Compile Include="SLFormat\CmdArgs\CmdArgs.fs" />
+    <Compile Include="SLFormat\CmdOpts\CmdArgs.fs" />
   </ItemGroup>
 
 </Project>

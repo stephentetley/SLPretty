@@ -9,6 +9,7 @@
     <None Include="TestPretty02.fsx" />
     <None Include="TestCmdArgs.fsx" />
     <None Include="DummyCmdOpts.fsx" />
+    <None Include="TestCmdOpts.fsx" />
   </ItemGroup>
 
   <ItemGroup>
