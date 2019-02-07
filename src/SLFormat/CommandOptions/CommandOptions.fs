@@ -8,6 +8,7 @@ module CommandOptions =
 
     open System.Text
 
+
     // ************************************************************************
     // String helpers
     
@@ -23,7 +24,7 @@ module CommandOptions =
 
 
     // ************************************************************************
-    // String helpers
+    // Command arguments / options
 
     type CmdOpt = 
         private | Empty 
@@ -62,13 +63,24 @@ module CommandOptions =
         | d1,Empty -> d1
         | _,_ -> Cat(a,b)
 
+    let (^+^) (a:CmdOpt) (b:CmdOpt) : CmdOpt = 
+        let space = character ' '
+        match a, b with
+        | Empty,d2 -> d2
+        | d1,Empty -> d1
+        | _,_ -> Cat(a,(Cat(space, b)))
+
     let concatArgs (cmd:CmdOpt) (args:string list) = 
         List.fold (fun ac s -> ac ^^ literal s) cmd args
 
-    let (&=) (cmd:CmdOpt) (s:string) : CmdOpt = cmd ^^ character '=' ^^ literal s
-    let (&+) (cmd:CmdOpt) (s:string) : CmdOpt = cmd ^^ character '+' ^^ literal s
-    let (&-) (cmd:CmdOpt) (s:string) : CmdOpt = cmd ^^ character '-' ^^ literal s
+    /// print equals between command and value
+    let (&=) (cmd:CmdOpt) (value:string) : CmdOpt = cmd ^^ character '=' ^^ literal value
+    let (&+) (cmd:CmdOpt) (value:string) : CmdOpt = cmd ^^ character '+' ^^ literal value
+    let (&-) (cmd:CmdOpt) (value:string) : CmdOpt = cmd ^^ character '-' ^^ literal value
     let (&%) (key:CmdOpt) (value:string) : CmdOpt = key ^^ character ':' ^^ literal (argValue value)
+    
+    /// print space between command and value
+    let (&^) (cmd:CmdOpt) (value:string) : CmdOpt = cmd ^+^ literal value
 
 
 
@@ -79,7 +91,7 @@ module CommandOptions =
     // We have seen this in Pandoc - maybe it is used elsewhere
 
 
-    /// An enabled extension is prefixed by plus '+'
+    /// An enabled extension is prefixed by plus  '+'
     /// A disabled extension is prefixed by minus '-'
     type Extension =
         | Enable of string
