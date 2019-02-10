@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Stephen Tetley 2019
 // License: BSD 3 Clause
 
-namespace SLFormat
+namespace SLFormat.CommandOptions
 
-
+[<AutoOpen>]
 module CommandOptions = 
 
     open System.Text

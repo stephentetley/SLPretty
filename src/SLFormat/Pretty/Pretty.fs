@@ -150,9 +150,10 @@ module Pretty =
     /// The input text should not contain newline characters.
     let text (s:string) : Doc = Text s
 
-
+    /// Undocumented - internal?
     let column (f:int -> Doc) : Doc = Column(f)
 
+    /// Undocumented - internal?
     let nesting (f:int -> Doc) : Doc = Nesting(f)
 
     /// Use the group combinator to specify alternate layouts.
@@ -356,7 +357,7 @@ module Pretty =
 
     let vcatSoftBreak (docs:Doc list) : Doc = punctuate softbreak docs
 
-
+    /// Undocumented.
     let width (doc:Doc) (fn:int -> Doc) : Doc = 
         column (fun k1 -> doc ^^ column (fun k2 -> fn (k2 - k1)) )
 

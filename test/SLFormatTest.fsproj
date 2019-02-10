@@ -7,7 +7,6 @@
   <ItemGroup>
     <None Include="TestPretty01.fsx" />
     <None Include="TestPretty02.fsx" />
-    <None Include="DummyCmdOpts.fsx" />
     <None Include="TestCmdOpts.fsx" />
   </ItemGroup>
 

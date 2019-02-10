@@ -14,7 +14,7 @@ let metadata : CmdOpt       = argument "--metadata"
 
 
 
-let args1 : CmdOpt list =
+let args1 () : CmdOpt list =
     [ fromLong       &=  "markdown" &+ "auto_identifiers" &- "raw_html"
     ; toLong         &=  "html"
     ; metadata       &=  "pagetile" &% "Sample HTML Output"
@@ -23,4 +23,4 @@ let args1 : CmdOpt list =
     ; literal            "cmdopts_notes.md"
     ]
 
-let test01 () = arguments args1 |> printfn "%s" 
+let test01 () = arguments (args1 ()) |> printfn "%s" 
