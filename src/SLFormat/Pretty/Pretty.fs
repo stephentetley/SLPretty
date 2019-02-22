@@ -123,11 +123,11 @@ module Pretty =
             match sdoc with
             | SEmpty -> cont ()
             | SText(t,rest) -> 
-                ignore <| sw.Write(t)
+                sw.Write(t)     |> ignore
                 work rest cont
             | SLine(x,rest) -> 
-                ignore <| sw.WriteLine()
-                ignore <| sw.Write(x)
+                sw.WriteLine()  |> ignore
+                sw.Write(x)     |> ignore 
                 work rest cont
 
         work (layout width doc) (fun _ -> ())
@@ -308,24 +308,40 @@ module Pretty =
     // List concatenation 
 
     let foldDocs (op:Doc -> Doc -> Doc) (documents:Doc list) : Doc = 
+        let rec work (acc:Doc) (ls:Doc list) (cont:Doc -> Doc) : Doc = 
+            match ls with
+            | [] -> cont acc
+            | x :: xs -> work (op acc x) xs cont        
         match documents with
         | [] -> empty
-        | (x::xs) -> List.fold op x xs
+        | (x::xs) -> work x xs id
 
     let punctuate (separator:Doc) (documents:Doc list) : Doc =
         foldDocs (fun l r -> l ^^ separator ^^ r) documents
-
+    
+    /// Separate documents horizontally with a space.
     let hsep (documents: Doc list) = foldDocs (^+^) documents
+
+    /// Separate documents with (^@^)
     let vsep (documents: Doc list) = foldDocs (^@^) documents
+    
+    /// Separate documents with (^/^)
     let fillSep (documents: Doc list)  = foldDocs (^/^) documents
+
     let sep (documents: Doc list) = group (vsep documents)
 
     let hcat (documents: Doc list) = foldDocs (^^) documents
+
+    /// Separate documents with (^@@^)
     let vcat (documents: Doc list) = foldDocs (^@@^) documents
+
+    /// Separate documents with (^//^)
     let fillCat (documents: Doc list)  = foldDocs (^//^) documents
+
     let cat (documents: Doc list) = group (vcat documents)
 
-    /// Concatenante all documents with `separator` and bookend them with `left` and `right`.
+    /// Concatenante all documents with `separator` and bookend them 
+    /// with `left` and `right`.
     let encloseSep (left:Doc) (right:Doc) (separator:Doc) (documents:Doc list) : Doc = 
         let rec work (acc:Doc) (docs:Doc list) (cont:Doc -> Doc) = 
             match docs with
