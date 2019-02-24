@@ -45,8 +45,8 @@ module Pretty =
         s.PadRight(totalWidth=spaces, paddingChar=' ')
 
     /// TODO - we should look to eliminating Column(f) and Nesting(f)
-    /// by evaluating flatten with "i" but we need to know whether
-    /// "i" is column position, line width or something else...
+    /// by evaluating flatten with column position and nesting level.
+    /// We would need accumulators to track these.
     let private flatten (document:Doc) : Doc = 
         let rec work (doc:Doc) (cont : Doc -> Doc) : Doc = 
             match doc with
@@ -57,7 +57,7 @@ module Pretty =
             | Line(false) -> cont (Text(" "))
             | Group(x) -> work x cont
             | Column(f) -> 
-                // Check - Column wraps a function, which makes it head spinng 
+                // Check - Column wraps a function, which makes it head spinning 
                 // to decide if this is a valid CPS transform.
                 cont (Column(fun i -> work (f i) id))    
             | Nesting(f) -> 
@@ -65,6 +65,9 @@ module Pretty =
             | _ -> cont doc
         work document (fun x -> x)
 
+
+    /// Warning this is exposed for test purposes (it may disappear in future).
+    let internalFlatten (document:Doc) : Doc = flatten document
 
     let private isTooBig (text:string) (col:int) (width:int) : bool = 
         col + text.Length > width
@@ -140,6 +143,20 @@ module Pretty =
         work (layout width doc) (fun _ -> ())
 
     
+    /// Output a document to stdout.
+    let printDoc (width:int) (doc:Doc) : unit = 
+        let rec work (sdoc:SimpleDoc) (cont:unit -> unit) : unit = 
+            match sdoc with
+            | SEmpty -> cont ()
+            | SText(t,rest) -> 
+                printf "%s" t   |> ignore
+                work rest cont
+            | SLine(x,rest) -> 
+                printfn ""      |> ignore
+                printf "%s" x   |> ignore 
+                work rest cont
+        work (layout width doc) (fun _ -> printfn "")
+
 
 
     // ************************************************************************
@@ -157,10 +174,13 @@ module Pretty =
     /// The input text should not contain newline characters.
     let text (s:string) : Doc = Text s
 
-    /// Undocumented - internal?
+    /// Undocumented - used by align.
+    /// 'column' gives access to the current column position.
     let column (f:int -> Doc) : Doc = Column(f)
 
-    /// Undocumented - internal?
+    /// Undocumented - used by align.
+    /// 'nesting' gives access to the current nesting position.
+    /// The nesting position is not the same as the column position.
     let nesting (f:int -> Doc) : Doc = Nesting(f)
 
     /// Use the group combinator to specify alternate layouts.
@@ -345,6 +365,9 @@ module Pretty =
     /// Separate documents with (^//^)
     let fillCat (documents: Doc list)  = foldDocs (^//^) documents
 
+
+    /// Concat the list of docs with (^^) if the result fits the within a line,
+    /// otherwise concat vertically with (^@@^).
     let cat (documents: Doc list) = group (vcat documents)
 
     /// Concatenante all documents with `separator` and bookend them 
@@ -404,14 +427,9 @@ module Pretty =
     let fillBreak (f:int) (doc:Doc) : Doc = 
         width doc (fun w -> if w > f then nest f linebreak else spaces (f - w))
 
-    /// Use this rather than text if the input string contains newlines.
-    /// Newline characters are replaced by 'line'
-    /// This is 'string' in PPrint (Haskell).
-    let fromString (s:string) : Doc = 
-        let lines = List.map text << Array.toList <| s.Split([| "\r\n"; "\r"; "\n" |], StringSplitOptions.None)
-        punctuate line lines
 
-    /// Alias for `empty` (potentially avoids name clashes).
+
+    /// Alias for `empty` (potentially avoids name clashes in user code).
     let emptyDoc : Doc = empty
 
     let intDoc (i:int) : Doc = i.ToString() |> text
@@ -424,3 +442,36 @@ module Pretty =
     let boolDoc (b:bool) : Doc = 
         (if b then "true" else "false") |> text
 
+    /// Use this rather than text if the input string contains newlines.
+    /// Newline characters are replaced by 'line'
+    /// This is 'string' in PPrint (Haskell).
+    let stringDoc (s:string) : Doc = 
+        let lines = List.map text << Array.toList <| s.Split([| "\r\n"; "\r"; "\n" |], StringSplitOptions.None)
+        punctuate line lines
+
+    let byteDoc (i:byte) : Doc = 
+        i.ToString() |> text
+        
+    let sbyteDoc (i:sbyte) : Doc = 
+        i.ToString() |> text
+        
+    let int16Doc (i:int16) : Doc = 
+        i.ToString() |> text
+
+    let uint16Doc (i:uint16) : Doc = 
+        i.ToString() |> text
+        
+    let int32Doc (i:int32) : Doc = 
+        i.ToString() |> text
+
+    let uint32Doc (i:uint32) : Doc = 
+        i.ToString() |> text
+        
+    let int64Doc (i:int64) : Doc = 
+        i.ToString() |> text
+
+    let uint64Doc (i:uint64) : Doc = 
+        i.ToString() |> text
+
+    let float32Doc (d:float32) : Doc = 
+        d.ToString() |> text
