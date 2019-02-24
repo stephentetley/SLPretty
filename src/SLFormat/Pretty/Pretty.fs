@@ -41,9 +41,12 @@ module Pretty =
 
 
 
-    let private padRight (s:string) (spaces:int) = s.PadRight(totalWidth=spaces, paddingChar=' ')
+    let private padRight (s:string) (spaces:int) : string = 
+        s.PadRight(totalWidth=spaces, paddingChar=' ')
 
-
+    /// TODO - we should look to eliminating Column(f) and Nesting(f)
+    /// by evaluating flatten with "i" but we need to know whether
+    /// "i" is column position, line width or something else...
     let private flatten (document:Doc) : Doc = 
         let rec work (doc:Doc) (cont : Doc -> Doc) : Doc = 
             match doc with
@@ -54,9 +57,11 @@ module Pretty =
             | Line(false) -> cont (Text(" "))
             | Group(x) -> work x cont
             | Column(f) -> 
-                cont (Column(fun i -> work (f i) id))           // Check!
+                // Check - Column wraps a function, which makes it head spinng 
+                // to decide if this is a valid CPS transform.
+                cont (Column(fun i -> work (f i) id))    
             | Nesting(f) -> 
-                cont (Nesting(fun i -> work (f i) id))          // Check!
+                cont (Nesting(fun i -> work (f i) id))
             | _ -> cont doc
         work document (fun x -> x)
 
@@ -67,7 +72,9 @@ module Pretty =
 
 
     let private layout (width:int) (doc:Doc) : SimpleDoc = 
-        let rec best (col:int) (docs: list<string * Doc>) (alternate:bool) sk fk =
+        let rec best (col:int) (docs: list<string * Doc>) (alternate:bool) 
+                     (sk:SimpleDoc -> SimpleDoc) 
+                     (fk:unit -> SimpleDoc) : SimpleDoc =
             match docs with
             | [] -> sk SEmpty
             | (_, Nil) :: rest ->
@@ -79,7 +86,7 @@ module Pretty =
             | (iz, Line _) :: rest ->
                 best iz.Length rest alternate (fun v1 -> sk (SLine(iz,v1))) fk
             | (iz, Group(x)) :: rest ->
-                best col ((iz, flatten x) :: rest) true (fun v1 -> sk v1) (fun _ -> 
+                best col ((iz, flatten x) :: rest) true sk (fun _ -> 
                 best col ((iz, x) :: rest) alternate sk fk)    
             | (iz, Text(t)) :: rest ->
                 if (width >= 0) && alternate && isTooBig t col width then
@@ -404,4 +411,16 @@ module Pretty =
         let lines = List.map text << Array.toList <| s.Split([| "\r\n"; "\r"; "\n" |], StringSplitOptions.None)
         punctuate line lines
 
+    /// Alias for `empty` (potentially avoids name clashes).
+    let emptyDoc : Doc = empty
+
+    let intDoc (i:int) : Doc = i.ToString() |> text
+    
+    let floatDoc (d:float) : Doc = d.ToString() |> text
+
+    let decimalDoc (d:decimal) : Doc = d.ToString() |> text
+
+    /// Prints "true" or "false" (lowercase, F# style)
+    let boolDoc (b:bool) : Doc = 
+        (if b then "true" else "false") |> text
 
