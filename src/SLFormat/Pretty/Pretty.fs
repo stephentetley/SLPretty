@@ -44,30 +44,33 @@ module Pretty =
     let private padRight (s:string) (spaces:int) : string = 
         s.PadRight(totalWidth=spaces, paddingChar=' ')
 
-    /// TODO - we should look to eliminating Column(f) and Nesting(f)
-    /// by evaluating flatten with column position and nesting level.
-    /// We would need accumulators to track these.
-    let private flatten (document:Doc) : Doc = 
-        let rec work (doc:Doc) (cont : Doc -> Doc) : Doc = 
+    /// We eliminate Column(f) and Nesting(f) by evaluating flatten with 
+    /// column position and nesting level unlike the original PPrint flatten.
+    ///
+    /// My understanding is that we don't need to supply initial nest level
+    /// as it is already accommodated by text padding in 'layout'.
+    let private flatten (columnPos:int) (document:Doc) : Doc = 
+        let rec work (column:int) (nest:int) (doc:Doc) (cont : int -> Doc -> int * Doc) : (int * Doc) = 
             match doc with
             | Cat(x,y) -> 
-                work x (fun x1 -> work y (fun y1 -> cont (Cat(x1, y1))))
-            | Nest(_,x) -> work x cont
-            | Line(true) -> cont Nil
-            | Line(false) -> cont (Text(" "))
-            | Group(x) -> work x cont
+                work column nest x (fun c1 x1 -> 
+                work c1 nest y (fun c2 y1 -> 
+                cont c2 (Cat(x1, y1))))
+            | Nest(n,x) -> work column (nest+n) x cont
+            | Line(true) -> cont column Nil
+            | Line(false) -> cont (column+1) (Text(" "))
+            | Group(x) -> work column nest x cont
             | Column(f) -> 
-                // Check - Column wraps a function, which makes it head spinning 
-                // to decide if this is a valid CPS transform.
-                cont (Column(fun i -> work (f i) id))    
+                work column nest (f column) cont
             | Nesting(f) -> 
-                cont (Nesting(fun i -> work (f i) id))
-            | _ -> cont doc
-        work document (fun x -> x)
+                work column nest (f nest) cont
+            | Text s -> cont (column + s.Length) doc
+            | Nil -> cont column Nil
+        work columnPos 0 document (fun c x -> (c,x)) |> snd
 
 
     /// Warning this is exposed for test purposes (it may disappear in future).
-    let internalFlatten (document:Doc) : Doc = flatten document
+    let internalFlatten (document:Doc) : Doc = flatten 0 document
 
     let private isTooBig (text:string) (col:int) (width:int) : bool = 
         col + text.Length > width
@@ -89,7 +92,7 @@ module Pretty =
             | (iz, Line _) :: rest ->
                 best iz.Length rest alternate (fun v1 -> sk (SLine(iz,v1))) fk
             | (iz, Group(x)) :: rest ->
-                best col ((iz, flatten x) :: rest) true sk (fun _ -> 
+                best col ((iz, flatten col x) :: rest) true sk (fun _ -> 
                 best col ((iz, x) :: rest) alternate sk fk)    
             | (iz, Text(t)) :: rest ->
                 if (width >= 0) && alternate && isTooBig t col width then
