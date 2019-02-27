@@ -32,6 +32,8 @@ module SimpleInvoke =
         with
         | ex -> Choice1Of2 (sprintf "executeProcess: \n%s" ex.Message)
 
+
+
     /// Very simple process runner.
     /// Fails if the exit code is not 0. 
     /// This may not be a prudent strategy.
@@ -42,7 +44,7 @@ module SimpleInvoke =
             | Choice1Of2(errMsg) -> failwith errMsg
             | Choice2Of2(code) -> 
                 if code <> 0 then
-                    failwithf "shellRun fail - error code: %i" code
+                    failwithf "runProcess fail - error code: %i" code
                 else ()
         with
         | ex -> 

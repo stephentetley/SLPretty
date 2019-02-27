@@ -36,3 +36,14 @@ let test03 () : unit =
 
 let test03a () : unit = 
     printfn "%s" <| prettyPrint (text "hello" ^/^ text "world") 12
+
+
+
+
+
+/// No leading zeros.
+let byteHex2 (i:byte) : Doc = 
+    formatted "0x%02X" i
+
+let test04 () : unit = 
+    printfn "%s" <| render 30 (byteHex2 0x0Auy)

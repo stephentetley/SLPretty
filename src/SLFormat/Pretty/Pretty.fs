@@ -509,6 +509,7 @@ module Pretty =
     let float32Doc (d:float32) : Doc = 
         d.ToString() |> text
 
-    /// No leading zeros.
-    let byteHex (i:byte) : Doc = 
-        sprintf "%x" i |> text
+    /// Print the value with the supplied format
+    let inline formatted (fmt:Printf.StringFormat<'a->string,string>) (value:'a) : Doc = 
+        sprintf fmt value |> text
+
