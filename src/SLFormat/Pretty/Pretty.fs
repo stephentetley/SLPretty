@@ -435,10 +435,27 @@ module Pretty =
     /// Alias for `empty` (potentially avoids name clashes in user code).
     let emptyDoc : Doc = empty
 
+    /// Print an int literal.
     let intDoc (i:int) : Doc = i.ToString() |> text
     
+    /// Print a float literal.
+    /// The output uses ToString() so it may be printed in 
+    /// exponential notation.
     let floatDoc (d:float) : Doc = d.ToString() |> text
+    
+    /// Print a double literal.
+    /// The output uses ToString() so it may be printed in 
+    /// exponential notation.
+    let doubleDoc (d:double) : Doc = d.ToString() |> text
 
+    /// Print a single (float32) literal.
+    /// The output uses ToString() so it may be printed in 
+    /// exponential notation.
+    let singleDoc (d:single) : Doc = d.ToString() |> text
+
+    /// Print a decimal literal.
+    /// The output uses ToString() so it may be printed in 
+    /// exponential notation.
     let decimalDoc (d:decimal) : Doc = d.ToString() |> text
 
     /// Prints "true" or "false" (lowercase, F# style)
@@ -452,29 +469,46 @@ module Pretty =
         let lines = List.map text << Array.toList <| s.Split([| "\r\n"; "\r"; "\n" |], StringSplitOptions.None)
         punctuate line lines
 
+    /// Print a unsigned byte literal as a decimal.
+    /// Note no F# type specifying suffix is printed, if you want this
+    /// functionality you need to write your own function.
     let byteDoc (i:byte) : Doc = 
         i.ToString() |> text
         
+    /// Print a signed byte literal as a decimal.
     let sbyteDoc (i:sbyte) : Doc = 
         i.ToString() |> text
-        
+
+    /// Print a 16-bit signed byte literal as a decimal.
     let int16Doc (i:int16) : Doc = 
         i.ToString() |> text
 
+    /// Print a 16-bit unsigned byte literal as a decimal.
     let uint16Doc (i:uint16) : Doc = 
         i.ToString() |> text
-        
+
+    /// Print a 32-bit signed byte literal as a decimal.
     let int32Doc (i:int32) : Doc = 
         i.ToString() |> text
 
+    /// Print a 32-bit unsigned byte literal as a decimal.
     let uint32Doc (i:uint32) : Doc = 
         i.ToString() |> text
-        
+
+    /// Print a 64-bit signed byte literal as a decimal.        
     let int64Doc (i:int64) : Doc = 
         i.ToString() |> text
 
+    /// Print a 64-bit unsigned byte literal as a decimal.
     let uint64Doc (i:uint64) : Doc = 
         i.ToString() |> text
-
+    
+    /// Print a 32-bit IEEE float. 
+    /// The output uses ToString() so it may be printed in 
+    /// exponential notation.
     let float32Doc (d:float32) : Doc = 
         d.ToString() |> text
+
+    /// No leading zeros.
+    let byteHex (i:byte) : Doc = 
+        sprintf "%x" i |> text
