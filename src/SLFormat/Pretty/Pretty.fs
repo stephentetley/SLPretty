@@ -11,6 +11,8 @@
 // implementation is new. 
 // Any mistakes are mine (SPT).
 
+// Note always build as release otherwise tail calls
+// will be turned off.
 
 namespace SLFormat
 
@@ -110,6 +112,7 @@ module Pretty =
     let prettyPrint (doc:Doc) (width:int) : string = 
         let sb = StringBuilder ()
         let inline stringAppend (s:string) :unit = sb.Append(s) |> ignore
+        let simpleDoc = layout width doc
         let rec work (sdoc:SimpleDoc) (cont:unit -> unit) : unit = 
             match sdoc with
             | SEmpty -> cont ()
@@ -121,7 +124,7 @@ module Pretty =
                 stringAppend x
                 work rest cont
 
-        work (layout width doc) (fun _ -> ())
+        work simpleDoc (fun _ -> ())
         sb.ToString()
 
     /// Render the document to a string.
