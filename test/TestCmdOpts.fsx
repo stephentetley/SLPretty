@@ -23,4 +23,4 @@ let args1 () : CmdOpt list =
     ; literal            "cmdopts_notes.md"
     ]
 
-let test01 () = arguments (args1 ()) |> printfn "%s" 
+let test01 () = renderCmdOpts (args1 ()) |> printfn "%s" 

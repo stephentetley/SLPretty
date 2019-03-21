@@ -48,42 +48,81 @@ module CommandOptions =
         
         static member empty : CmdOpt = Empty
 
-    let arguments (opts:CmdOpt list) : string = 
+    /// Render the options to a string, ready to be passed to 
+    /// .Net's `System.Diagnostics.ProcessStartInfo`.
+    ///
+    /// Note the opts should not contain the program to be invoked, 
+    /// this is a separate item when invoking 
+    /// `System.Diagnostics.ProcessStartInfo`.
+    let renderCmdOpts (opts:CmdOpt list) : string = 
         opts |> List.map (fun x -> x.ToString()) |>  String.concat " "
 
 
 
+    /// Create an opt.
+    /// Note the argument is just the literal string, no leading 
+    /// dashes etc. are added.
     let argument (name : string) : CmdOpt = Text(name)
+    
+    /// Create a _no opt_.
     let noArgument : CmdOpt = Empty
 
+    /// Literal string (no escaping).
     let literal (s:string) : CmdOpt = Text(s)
+
+    /// Literal character (no escaping).
     let character (c:char) : CmdOpt = Text(c.ToString())
-    let (^^) (a:CmdOpt) (b:CmdOpt) : CmdOpt = 
+    
+    /// Concatentate two CmdOpt fragments, with no space 
+    /// between them.
+    /// Note - this operator should be considered _internal_.
+    /// It is only exposed to let "super users" make their
+    /// own custom cammand options.
+    let ( ^^ ) (a:CmdOpt) (b:CmdOpt) : CmdOpt = 
         match a, b with
         | Empty,d2 -> d2
         | d1,Empty -> d1
         | _,_ -> Cat(a,b)
 
-    let (^+^) (a:CmdOpt) (b:CmdOpt) : CmdOpt = 
+    /// Concatentate two CmdOpt fragments, with a space 
+    /// seperating them.
+    /// Note - this operator should be considered _internal_.
+    /// It is only exposed to let "super users" make their
+    /// own custom cammand options.
+    let ( ^+^ ) (a:CmdOpt) (b:CmdOpt) : CmdOpt = 
         let space = character ' '
         match a, b with
         | Empty,d2 -> d2
         | d1,Empty -> d1
         | _,_ -> Cat(a,(Cat(space, b)))
 
-    let concatArgs (cmd:CmdOpt) (args:string list) = 
+
+    let concatArgs (cmd:CmdOpt) (args:string list) : CmdOpt = 
         List.fold (fun ac s -> ac ^^ literal s) cmd args
 
-    /// print equals between command and value
-    let ( &= ) (cmd:CmdOpt) (value:string) : CmdOpt = cmd ^^ character '=' ^^ literal value
-    let ( &+ ) (cmd:CmdOpt) (value:string) : CmdOpt = cmd ^^ character '+' ^^ literal value
-    let ( &- ) (cmd:CmdOpt) (value:string) : CmdOpt = cmd ^^ character '-' ^^ literal value
-    let ( &% ) (key:CmdOpt) (value:string) : CmdOpt = key ^^ character ':' ^^ literal (argValue value)
+    /// Print equals `=` between command and value
+    let ( &= ) (cmd:CmdOpt) (value:string) : CmdOpt = 
+        cmd ^^ character '=' ^^ literal value
+
+    /// Print plus `+` between command and value
+    let ( &+ ) (cmd:CmdOpt) (value:string) : CmdOpt = 
+        cmd ^^ character '+' ^^ literal value
+
+    /// Print dash `-` between command and value
+    let ( &- ) (cmd:CmdOpt) (value:string) : CmdOpt = 
+        cmd ^^ character '-' ^^ literal value
+
+    /// Print colon `:` between command and value
+    ///
+    /// This is COLON not PERCENTAGE. 
+    /// FSharp prevents the use of colon in operator names.
+    let ( &% ) (key:CmdOpt) (value:string) : CmdOpt = 
+        key ^^ character ':' ^^ literal (argValue value)
 
     /// No space or other punctuation between command and value
     let ( &^ ) (cmd:CmdOpt) (value:string) : CmdOpt = cmd ^^ literal value
     
-    /// print space between command and value
+    /// Print space between command and value
     let ( &^^ ) (cmd:CmdOpt) (value:string) : CmdOpt = cmd ^+^ literal value
 
     /// Group a list of command options together, separate with space.
