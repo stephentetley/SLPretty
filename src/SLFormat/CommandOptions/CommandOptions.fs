@@ -77,7 +77,7 @@ module CommandOptions =
     /// between them.
     /// Note - this operator should be considered _internal_.
     /// It is only exposed to let "super users" make their
-    /// own custom cammand options.
+    /// own custom command options.
     let ( ^^ ) (a:CmdOpt) (b:CmdOpt) : CmdOpt = 
         match a, b with
         | Empty,d2 -> d2
@@ -88,7 +88,7 @@ module CommandOptions =
     /// seperating them.
     /// Note - this operator should be considered _internal_.
     /// It is only exposed to let "super users" make their
-    /// own custom cammand options.
+    /// own custom command options.
     let ( ^+^ ) (a:CmdOpt) (b:CmdOpt) : CmdOpt = 
         let space = character ' '
         match a, b with
@@ -150,4 +150,3 @@ module CommandOptions =
 
     let (&**) (cmd:CmdOpt) (extensions:Extension list) : CmdOpt =  
         extensions |> List.map (fun x -> x.ToString()) |> concatArgs cmd 
-

@@ -16,42 +16,71 @@ module SimpleInvoke =
     // ************************************************************************
     // Running a process
 
-    // Running a process 
-    let executeProcess (workingDirectory:string) (toolPath:string) (commandOptions:CmdOpt list) : Choice<string,int> = 
+    /// Running a process 
+    /// Return Error(error message) or Ok(exit code)
+    let executeProcess (workingDirectory:string option) 
+                       (toolPath:string) 
+                       (commandOptions:CmdOpt list) : Result<int,string> = 
         try
-            let procInfo = new System.Diagnostics.ProcessStartInfo ()
-            procInfo.WorkingDirectory <- workingDirectory
-            procInfo.FileName <- toolPath
-            procInfo.Arguments <- renderCmdOpts commandOptions
-            procInfo.CreateNoWindow <- true
-            let proc = new System.Diagnostics.Process()
-            proc.StartInfo <- procInfo
+            use proc = new System.Diagnostics.Process()
+            match workingDirectory with
+            | Some working -> proc.StartInfo.WorkingDirectory <- working
+            | None -> ()
+            proc.StartInfo.FileName <- toolPath
+            proc.StartInfo.Arguments <- renderCmdOpts commandOptions
+            proc.StartInfo.CreateNoWindow <- true
             proc.Start() |> ignore
             proc.WaitForExit () 
-            Choice2Of2 <| proc.ExitCode
+            Ok <| proc.ExitCode
         with
-        | ex -> Choice1Of2 (sprintf "executeProcess: \n%s" ex.Message)
+        | ex -> Error (sprintf "executeProcess: \n%s" ex.Message)
 
+    type ProcessResult = 
+        { ExitCode: int
+          StdOut: string }
+
+    /// Running a process 
+    /// Return Error(error message) or Ok(exit code & stdout)
+    let runProcess (workingDirectory:string option) 
+                   (toolPath:string) 
+                   (commandOptions:CmdOpt list) : Result<ProcessResult, string> = 
+        try
+            use proc = new System.Diagnostics.Process()
+            proc.StartInfo.FileName <- toolPath
+            proc.StartInfo.Arguments <- renderCmdOpts commandOptions
+            match workingDirectory with
+            | Some working -> proc.StartInfo.WorkingDirectory <- working
+            | None -> ()
+            proc.StartInfo.UseShellExecute <- false
+            proc.StartInfo.RedirectStandardOutput <- true
+            proc.Start() |> ignore
+
+            let reader : System.IO.StreamReader = proc.StandardOutput
+            let stdout = reader.ReadToEnd()
+
+            proc.WaitForExit ()
+            Ok { ExitCode = proc.ExitCode; StdOut = stdout }
+        with
+        | ex -> Error (sprintf "executeProcess: \n%s" ex.Message)
 
 
     /// Very simple process runner.
     /// Fails if the exit code is not 0. 
     /// This may not be a prudent strategy.
-    let runProcess (workingDirectory:string) (toolPath:string) (commandArguments:CmdOpt list) : unit = 
+    let runProcessSimple (workingDirectory:string option) (toolPath:string) (commandArguments:CmdOpt list) : unit = 
         let args = renderCmdOpts commandArguments
         try
             match executeProcess workingDirectory toolPath commandArguments with
-            | Choice1Of2(errMsg) -> failwith errMsg
-            | Choice2Of2(code) -> 
-                if code <> 0 then
+            | Error msg -> failwith msg
+            | Ok code when code <> 0 ->
                     failwithf "runProcess fail - error code: %i" code
-                else ()
+            | _ -> ()
         with
         | ex -> 
             let diagnosis = 
                 String.concat "\n" <| 
                     [ ex.Message
-                    ; sprintf "Working Directory: %s" workingDirectory 
+                    ; sprintf "Working Directory: %O" workingDirectory 
                     ; sprintf "Command Args: %s" args
                     ]
             failwithf "runProcess exception: \n%s" diagnosis

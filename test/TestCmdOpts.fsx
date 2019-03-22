@@ -2,8 +2,10 @@
 // License: BSD 3 Clause
 
 #load "..\src\SLFormat\CommandOptions\CommandOptions.fs"
+#load "..\src\SLFormat\CommandOptions\SimpleInvoke.fs"
 
 open SLFormat.CommandOptions
+open SLFormat.CommandOptions.SimpleInvoke
 
 
 let standalone : CmdOpt     = argument "--standalone"
@@ -24,3 +26,8 @@ let args1 () : CmdOpt list =
     ]
 
 let test01 () = renderCmdOpts (args1 ()) |> printfn "%s" 
+
+let test02 () = 
+    runProcess None "pandoc" [argument "--version"]
+
+

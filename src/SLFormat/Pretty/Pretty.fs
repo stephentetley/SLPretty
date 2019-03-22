@@ -111,7 +111,7 @@ module Pretty =
     /// Lines are terminated with the operating systems default line terminator.
     let prettyPrint (doc:Doc) (width:int) : string = 
         let sb = StringBuilder ()
-        let inline stringAppend (s:string) :unit = sb.Append(s) |> ignore
+        let inline stringAppend (s:string) : unit = sb.Append(s) |> ignore
         let simpleDoc = layout width doc
         let rec work (sdoc:SimpleDoc) (cont:unit -> unit) : unit = 
             match sdoc with
