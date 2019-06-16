@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Version>1.0.2-alpha-20190322</Version>
+    <Version>1.0.2-alpha-20190616</Version>
     <Authors>Stephen Tetley</Authors>
     <PackageProjectUrl>https://github.com/stephentetley/sl-format</PackageProjectUrl>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -11,11 +11,12 @@
     <Description>A formatting library for F#.
 Includes a pretty printer and a very simple combinator library for building command line arguments.
 The pretty printer library based on Daan Leijen's PPrint and Racket's pprint.</Description>
+    <PackageLicenseFile></PackageLicenseFile>
   </PropertyGroup>
 
   <ItemGroup>
     <Compile Include="SLFormat\Pretty\Pretty.fs" />
-    <Compile Include="SLFormat\Tree\Tree.fs" />
+    <Compile Include="SLFormat\Tree\RoseTree.fs" />
     <Compile Include="SLFormat\CommandOptions\CommandOptions.fs" />
     <Compile Include="SLFormat\CommandOptions\SimpleInvoke.fs" />
 </ItemGroup>

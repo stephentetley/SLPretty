@@ -10,7 +10,7 @@
 namespace SLFormat
 
 
-module Tree = 
+module RoseTree = 
     
     open System
 
@@ -25,9 +25,7 @@ module Tree =
         String.concat Environment.NewLine source
 
 
-    type Tree<'a> = Tree of 'a * Tree<'a> list
-
-    type Forest<'a> = Tree<'a> list
+    type RoseTree<'a> = RoseTree of 'a * RoseTree<'a> list
 
     let private shift (first : string) 
                       (other : string) 
@@ -52,8 +50,8 @@ module Tree =
             
 
 
-    let private drawTree1 (source : Tree<string>) : string list = 
-        let rec draw1 (Tree(label, kids) : Tree<string>) (cont : string list -> string list) = 
+    let private drawTree1 (source : RoseTree<string>) : string list = 
+        let rec draw1 (RoseTree(label, kids) : RoseTree<string>) (cont : string list -> string list) = 
             let xs = toLines label 
             drawKids kids (fun ac -> cont (xs @ ac))
         and drawKids xs (cont : string list -> string list) = 
@@ -61,7 +59,7 @@ module Tree =
             | [] -> cont []
             | [t1] -> 
                 draw1 t1                    (fun ac1 -> 
-                shift "`- " "|  " ac1       (fun ac2 -> 
+                shift "`- " "   " ac1       (fun ac2 -> 
                 cont ("|" :: ac2)))
             | t1 :: ts -> 
                 draw1 t1                        (fun ac1 ->
@@ -71,15 +69,15 @@ module Tree =
         draw1 source id
 
 
-    let drawTree (tree : Tree<string>) : string = 
+    let drawTree (tree : RoseTree<string>) : string = 
         fromLines <| drawTree1 tree
 
-    let mapTree (mapper : 'a -> 'b) (tree : Tree<'a>) : Tree<'b> = 
-        let rec map1 (Tree(a, kids)) (cont :Tree<'b> -> Tree<'b>) = 
+    let mapTree (mapper : 'a -> 'b) (tree : RoseTree<'a>) : RoseTree<'b> = 
+        let rec map1 (RoseTree(a, kids)) (cont :RoseTree<'b> -> RoseTree<'b>) = 
             let label = mapper a
             mapKids kids (fun ac -> 
-            cont (Tree(label, ac)))
-        and mapKids xs (cont :Tree<'b> list -> Tree<'b>) = 
+            cont (RoseTree(label, ac)))
+        and mapKids xs (cont : RoseTree<'b> list -> RoseTree<'b>) = 
             match xs with 
             | [] -> cont []
             | t1 :: ts -> 

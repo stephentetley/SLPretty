@@ -1,18 +1,18 @@
 // Copyright (c) Stephen Tetley 2019
 // License: BSD 3 Clause
 
-#load "..\src\SLFormat\Tree\Tree.fs"
+#load "..\src\SLFormat\Tree\RoseTree.fs"
 
-open SLFormat.Tree
+open SLFormat.RoseTree
 
-let tree1 : Tree<string> = Tree("one", [ Tree("two", [Tree("four", [])]); Tree("three", [])])
+let tree1 : RoseTree<string> = RoseTree("one", [ RoseTree("two", [RoseTree("four", [])]); RoseTree("three", [])])
 
 
 let test01 () = 
     tree1 |> drawTree |> printfn "%s"
 
 
-let tree2 : Tree<int> = Tree(1, [ Tree(2, [Tree(4, [Tree(5,[]); Tree(6,[])])]); Tree(3, [])])
+let tree2 : RoseTree<int> = RoseTree(1, [ RoseTree(2, [RoseTree(4, [RoseTree(5,[]); RoseTree(6,[])])]); RoseTree(3, [])])
 
 
 let test02 () = 
