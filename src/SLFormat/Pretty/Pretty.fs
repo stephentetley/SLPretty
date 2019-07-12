@@ -11,7 +11,7 @@
 // implementation is new. 
 // Any mistakes are mine (SPT).
 
-// Note always build as release otherwise tail calls
+// Note always build as Release otherwise tail call optimization
 // will be turned off.
 
 namespace SLFormat
@@ -26,10 +26,10 @@ module Pretty =
     type Doc = 
         private 
             | Nil
-            | Cat of Doc * Doc
-            | Nest of int * Doc
             | Text of string
             | Line of bool
+            | Cat of Doc * Doc
+            | Nest of int * Doc
             | Group of Doc
             | Column of (int -> Doc)
             | Nesting of (int -> Doc)   
@@ -174,7 +174,7 @@ module Pretty =
     
     /// 'nest' renders the document 'doc' with the current indentation level 
     /// increased by i
-    let nest (i:int) (doc:Doc) : Doc = Nest (i,doc)
+    let nest (i : int) (doc : Doc) : Doc = Nest (i, doc)
     
     /// Generate the document containing the literal string 's'.
     /// The input text should not contain newline characters.
