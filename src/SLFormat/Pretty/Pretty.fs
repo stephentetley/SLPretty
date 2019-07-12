@@ -229,7 +229,7 @@ module Pretty =
 
     /// Concatenate two documents horizontally (no separating space).
     /// This is (<>) in PPrint (Haskell).
-    let (^^) (x:Doc) (y:Doc) = beside x y
+    let ( ^^ ) (x:Doc) (y:Doc) = beside x y
 
     /// Concatenate two documents horizontally with a separating space.
     let besideSpace (x:Doc) (y:Doc) : Doc = x ^^ character ' ' ^^ y
@@ -237,23 +237,23 @@ module Pretty =
 
     /// Concatenate two documents horizontally with a separating space.
     /// This is (<+>) in PPrint (Haskell).
-    let (^+^) (x:Doc) (y:Doc) : Doc = besideSpace x y
+    let ( ^+^ ) (x:Doc) (y:Doc) : Doc = besideSpace x y
 
     /// Concatenate two documents with a soft line.
     /// This is (</>) in PPrint (Haskell).
-    let (^/^) (x:Doc) (y:Doc) : Doc = x ^^ softline ^^ y
+    let ( ^/^ ) (x:Doc) (y:Doc) : Doc = x ^^ softline ^^ y
     
     /// Concatenate two documents with a soft break.
     /// This is (<//>) in PPrint (Haskell).
-    let (^//^) (x:Doc) (y:Doc) : Doc = x ^^ softbreak ^^ y
+    let ( ^//^ ) (x:Doc) (y:Doc) : Doc = x ^^ softbreak ^^ y
 
     /// Concatenate two documents separinting with `line`.
     /// This is (<$>) in PPrint (Haskell).
-    let (^@^) (x:Doc) (y:Doc) : Doc = x ^^ line ^^ y
+    let ( ^!^ ) (x:Doc) (y:Doc) : Doc = x ^^ line ^^ y
 
     /// Concatenate two documents separinting with `linebreak`.
     /// This is (<$$>) in PPrint (Haskell).
-    let (^@@^) (x:Doc) (y:Doc) : Doc = x ^^ linebreak ^^ y
+    let ( ^!!^ ) (x:Doc) (y:Doc) : Doc = x ^^ linebreak ^^ y
 
 
     
@@ -355,8 +355,8 @@ module Pretty =
     /// Separate documents horizontally with a space.
     let hsep (documents: Doc list) = foldDocs (^+^) documents
 
-    /// Separate documents with (^@^)
-    let vsep (documents: Doc list) = foldDocs (^@^) documents
+    /// Separate documents with (^!^)
+    let vsep (documents: Doc list) = foldDocs (^!^) documents
     
     /// Separate documents with (^/^)
     let fillSep (documents: Doc list)  = foldDocs (^/^) documents
@@ -365,15 +365,15 @@ module Pretty =
 
     let hcat (documents: Doc list) = foldDocs (^^) documents
 
-    /// Separate documents with (^@@^)
-    let vcat (documents: Doc list) = foldDocs (^@@^) documents
+    /// Separate documents with (^!!^)
+    let vcat (documents: Doc list) = foldDocs (^!!^) documents
 
     /// Separate documents with (^//^)
     let fillCat (documents: Doc list)  = foldDocs (^//^) documents
 
 
     /// Concat the list of docs with (^^) if the result fits the within a line,
-    /// otherwise concat vertically with (^@@^).
+    /// otherwise concat vertically with (^!!^).
     let cat (documents: Doc list) = group (vcat documents)
 
     /// Concatenante all documents with `separator` and bookend them 

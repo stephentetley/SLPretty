@@ -19,7 +19,7 @@ let testNesting01 () : unit =
     let b : Doc = text "bbb"
     let c : Doc = text "ccc"
     let d : Doc = text "ddd"
-    let doc1 : Doc  = a ^@@^ (nest 2 (b ^@@^ c)) ^@@^ d
+    let doc1 : Doc  = a ^!!^ (nest 2 (b ^!!^ c)) ^!!^ d
     printfn "%s" <| prettyPrint doc1 80
 
 /// "bbb" and "ccc" indented 
@@ -28,7 +28,7 @@ let testIndent01 () : unit =
     let b : Doc = text "bbb"
     let c : Doc = text "ccc"
     let d : Doc = text "ddd"
-    let doc1 : Doc  = a ^@@^ (indent 2 (b ^@@^ c)) ^@@^ d
+    let doc1 : Doc  = a ^!!^ (indent 2 (b ^!!^ c)) ^!!^ d
     printfn "%s" <| prettyPrint doc1 80
 
 let test03 () : unit = 

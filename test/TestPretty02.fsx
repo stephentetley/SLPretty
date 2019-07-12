@@ -26,19 +26,19 @@ let testFillBreak () =
 
 
 let vertical01 () =
-    output <| text "hello" ^@^ text "world"
+    output <| text "hello" ^!^ text "world"
 
 
 let vertical02 () =
-    output <| text "hello" ^@@^ text "world"
+    output <| text "hello" ^!!^ text "world"
 
 
 let vertical01b () =
-    output << internalFlatten <| text "hello" ^@^ text "world"
+    output << internalFlatten <| text "hello" ^!^ text "world"
 
 
 let vertical02b () =
-    output << internalFlatten <| text "hello" ^@@^ text "world"
+    output << internalFlatten <| text "hello" ^!!^ text "world"
 
 // output:
 // hello (0) world (10)
