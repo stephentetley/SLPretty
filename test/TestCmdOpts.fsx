@@ -30,4 +30,12 @@ let test01 () = renderCmdOpts (args1 ()) |> printfn "%s"
 let test02 () = 
     runProcess None "pandoc" [argument "--version"]
 
+// Should succeed
+let test03 () = 
+    runProcess None "clingo" [argument "--version"]
+
+// Should fail
+let test04 () = 
+    runProcess None "clingo" [argument "--BAD"]
+
 

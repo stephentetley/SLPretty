@@ -35,15 +35,27 @@ module SimpleInvoke =
         with
         | ex -> Error (sprintf "executeProcess: \n%s" ex.Message)
 
+    type ProcessAnswer = 
+        { ExitCode : int
+          StdOut : string
+          StdErr : string 
+        }
+
     type ProcessResult = 
-        { ExitCode: int
-          StdOut: string }
+        | Answer of ProcessAnswer
+        | SysExn of exn
+
 
     /// Running a process 
-    /// Return Error(error message) or Ok(exit code & stdout)
+    /// Return an Answer (exit code * stdout * stderr) or and exception
+    /// if the call failed abnormally.
+    /// 
+    /// Note returning an aswer does not imply running the process was
+    /// successful. You must check the ExitCode and compare it with 
+    /// specification of the application being called.
     let runProcess (workingDirectory:string option) 
                    (toolPath:string) 
-                   (commandOptions:CmdOpt list) : Result<ProcessResult, string> = 
+                   (commandOptions:CmdOpt list) : ProcessResult = 
         try
             use proc = new System.Diagnostics.Process()
             proc.StartInfo.FileName <- toolPath
@@ -53,15 +65,19 @@ module SimpleInvoke =
             | None -> ()
             proc.StartInfo.UseShellExecute <- false
             proc.StartInfo.RedirectStandardOutput <- true
+            proc.StartInfo.RedirectStandardError <- true
             proc.Start() |> ignore
 
-            let reader : System.IO.StreamReader = proc.StandardOutput
-            let stdout = reader.ReadToEnd()
+            let soReader : System.IO.StreamReader = proc.StandardOutput
+            let stdout = soReader.ReadToEnd()
+
+            let seReader : System.IO.StreamReader = proc.StandardError
+            let stderr = seReader.ReadToEnd()
 
             proc.WaitForExit ()
-            Ok { ExitCode = proc.ExitCode; StdOut = stdout }
+            Answer { ExitCode = proc.ExitCode; StdOut = stdout; StdErr = stderr }
         with
-        | ex -> Error (sprintf "executeProcess: \n%s" ex.Message)
+        | excptn -> SysExn excptn
 
 
     /// Very simple process runner.
