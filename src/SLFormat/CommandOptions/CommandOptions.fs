@@ -73,6 +73,10 @@ module CommandOptions =
     /// Literal character (no escaping).
     let character (c:char) : CmdOpt = Text(c.ToString())
     
+    /// Integer literal
+    let intLiteral (i : int) : CmdOpt = 
+        i.ToString() |> literal 
+    
     /// Concatentate two CmdOpt fragments, with no space 
     /// between them.
     /// Note - this operator should be considered _internal_.
