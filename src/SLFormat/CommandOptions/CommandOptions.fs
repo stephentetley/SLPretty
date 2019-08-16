@@ -12,6 +12,18 @@ module CommandOptions =
     // ************************************************************************
     // String helpers
     
+
+    // Caution - without some idea of escaping these quoters 
+    // oversell themsleves.
+
+    let doubleDoubleQuote (s:string) : string = "\"\"" + s + "\"\""
+    let tripleDoubleQuote (s:string) : string = "\"\"\"" + s + "\"\"\""
+    let doubleSingleQuote (s:string) : string = "''" + s + "''"
+    let tripleSingleQuote (s:string) : string = "'''" + s + "'''"
+
+    let singleQuoteDoubleQuote (s:string) : string = "'\"" + s + "\"'"
+    let doubleQuoteSingleQuote (s:string) : string = "\"'" + s + "'\""
+
     let doubleQuote (s:string) : string = "\"" + s + "\""
     let singleQuote (s:string) : string = "\"" + s + "\""
 
