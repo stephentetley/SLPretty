@@ -15,6 +15,7 @@ The pretty printer library based on Daan Leijen's PPrint and Racket's pprint.</D
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="SLFormat\StringDoc\StringDoc.fs" />
     <Compile Include="SLFormat\Pretty\Pretty.fs" />
     <Compile Include="SLFormat\Tree\RoseTree.fs" />
     <Compile Include="SLFormat\CommandOptions\CommandOptions.fs" />

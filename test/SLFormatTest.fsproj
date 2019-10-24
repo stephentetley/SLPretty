@@ -9,6 +9,7 @@
     <None Include="TestPretty01.fsx" />
     <None Include="TestPretty02.fsx" />
     <None Include="TestPrettyHang.fsx" />
+    <None Include="TestStringDoc01.fsx" />
     <None Include="TestTree01.fsx" />
     <None Include="TestCmdOpts.fsx" />
     <None Include="TestInvoke.fsx" />

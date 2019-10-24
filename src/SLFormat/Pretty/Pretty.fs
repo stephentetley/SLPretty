@@ -247,11 +247,11 @@ module Pretty =
     /// This is (<//>) in PPrint (Haskell).
     let ( ^//^ ) (x:Doc) (y:Doc) : Doc = x ^^ softbreak ^^ y
 
-    /// Concatenate two documents separinting with `line`.
+    /// Concatenate two documents separating with `line`.
     /// This is (<$>) in PPrint (Haskell).
     let ( ^!^ ) (x:Doc) (y:Doc) : Doc = x ^^ line ^^ y
 
-    /// Concatenate two documents separinting with `linebreak`.
+    /// Concatenate two documents separating with `linebreak`.
     /// This is (<$$>) in PPrint (Haskell).
     let ( ^!!^ ) (x:Doc) (y:Doc) : Doc = x ^^ linebreak ^^ y
 
