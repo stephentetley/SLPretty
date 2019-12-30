@@ -43,8 +43,8 @@ module Pretty =
 
 
 
-    let private padRight (s:string) (spaces:int) : string = 
-        s.PadRight(totalWidth=spaces, paddingChar=' ')
+    let private extend (s:string) (spaces:int) : string = 
+        s + new String(c = ' ', count = spaces)
 
     /// We eliminate Column(f) and Nesting(f) by evaluating flatten with 
     /// column position and nesting level unlike the original PPrint flatten.
@@ -90,9 +90,9 @@ module Pretty =
             | (iz, Cat(x,y)) :: rest -> 
                 best col ((iz,x) :: (iz,y) :: rest) alternate sk fk
             | (iz, Nest(n,x)) :: rest -> 
-                best col ((padRight iz n,x) :: rest) alternate sk fk
+                best col ((extend iz n,x) :: rest) alternate sk fk
             | (iz, Line _) :: rest ->
-                best iz.Length rest alternate (fun v1 -> sk (SLine(iz,v1))) fk
+                best iz.Length rest alternate (fun v1 -> sk (SLine(iz, v1))) fk
             | (iz, Group(x)) :: rest ->
                 best col ((iz, flatten col x) :: rest) true sk (fun _ -> 
                 best col ((iz, x) :: rest) alternate sk fk)    

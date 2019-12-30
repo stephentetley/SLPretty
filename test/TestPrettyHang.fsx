@@ -31,7 +31,6 @@ let tree1 : Doc =
         ]
 
 /// This should print with nice 'expected' indentation indicating nesting.
-/// Currently (12 July 2019) there is a bug in rendering and indentation 
-/// is only working for the first level.
+/// Fixed 30/12/2019
 let demo01 () = output tree1
     
