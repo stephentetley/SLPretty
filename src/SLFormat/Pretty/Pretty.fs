@@ -54,6 +54,8 @@ module Pretty =
     let private flatten (columnPos:int) (document:Doc) : Doc = 
         let rec work (column:int) (nest:int) (doc:Doc) (cont : int -> Doc -> int * Doc) : (int * Doc) = 
             match doc with
+            | Nil -> cont column Nil
+            | Text s -> cont (column + s.Length) doc
             | Cat(x,y) -> 
                 work column nest x (fun c1 x1 -> 
                 work c1 nest y (fun c2 y1 -> 
@@ -65,9 +67,7 @@ module Pretty =
             | Column(f) -> 
                 work column nest (f column) cont
             | Nesting(f) -> 
-                work column nest (f nest) cont
-            | Text s -> cont (column + s.Length) doc
-            | Nil -> cont column Nil
+                work column nest (f nest) cont            
         work columnPos 0 document (fun c x -> (c,x)) |> snd
 
 
@@ -96,7 +96,7 @@ module Pretty =
             | (iz, Group(x)) :: rest ->
                 best col ((iz, flatten col x) :: rest) true sk (fun _ -> 
                 best col ((iz, x) :: rest) alternate sk fk)    
-            | (iz, Text(t)) :: rest ->
+            | (_, Text(t)) :: rest ->
                 if (width >= 0) && alternate && isTooBig t col width then
                     fk ()
                 else
@@ -229,7 +229,7 @@ module Pretty =
 
     /// Concatenate two documents horizontally (no separating space).
     /// This is (<>) in PPrint (Haskell).
-    let ( ^^ ) (x:Doc) (y:Doc) = beside x y
+    let ( ^^ ) (x:Doc) (y:Doc) : Doc = beside x y
 
     /// Concatenate two documents horizontally with a separating space.
     let besideSpace (x:Doc) (y:Doc) : Doc = x ^^ character ' ' ^^ y
@@ -316,10 +316,10 @@ module Pretty =
     /// Generate a document of n spaces.
     let spaces (n:int) : Doc = text <| String.replicate n " "
 
-    /// Enclose the document body betwen l (left) and r (right).
+    /// Enclose the document body between l (left) and r (right).
     let enclose (l:Doc) (r:Doc) (body:Doc)   = l ^^ body ^^ r
 
-    /// Enclose in signle quotes '...'
+    /// Enclose in single quotes '...'
     let squotes (x:Doc) : Doc = enclose squote squote x
     
     /// Enclose in double quotes "..."
@@ -353,28 +353,28 @@ module Pretty =
         foldDocs (fun l r -> l ^^ separator ^^ r) documents
     
     /// Separate documents horizontally with a space.
-    let hsep (documents: Doc list) = foldDocs (^+^) documents
+    let hsep (documents: Doc list) : Doc = foldDocs (^+^) documents
 
     /// Separate documents with (^!^)
-    let vsep (documents: Doc list) = foldDocs (^!^) documents
+    let vsep (documents: Doc list) : Doc = foldDocs (^!^) documents
     
     /// Separate documents with (^/^)
-    let fillSep (documents: Doc list)  = foldDocs (^/^) documents
+    let fillSep (documents: Doc list) : Doc = foldDocs (^/^) documents
 
-    let sep (documents: Doc list) = group (vsep documents)
+    let sep (documents: Doc list) : Doc = group (vsep documents)
 
-    let hcat (documents: Doc list) = foldDocs (^^) documents
+    let hcat (documents: Doc list) : Doc = foldDocs (^^) documents
 
     /// Separate documents with (^!!^)
-    let vcat (documents: Doc list) = foldDocs (^!!^) documents
+    let vcat (documents: Doc list) : Doc = foldDocs (^!!^) documents
 
     /// Separate documents with (^//^)
-    let fillCat (documents: Doc list)  = foldDocs (^//^) documents
+    let fillCat (documents: Doc list) : Doc = foldDocs (^//^) documents
 
 
     /// Concat the list of docs with (^^) if the result fits the within a line,
     /// otherwise concat vertically with (^!!^).
-    let cat (documents: Doc list) = group (vcat documents)
+    let cat (documents: Doc list) : Doc = group (vcat documents)
 
     /// Concatenante all documents with `separator` and bookend them 
     /// with `left` and `right`.
